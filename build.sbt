@@ -1,5 +1,7 @@
 import Dependencies._
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 ThisBuild / scalaVersion := "2.13.8"
 ThisBuild / version := "2.0.0"
 ThisBuild / organization := "dev.profunktor"
@@ -11,11 +13,16 @@ ThisBuild / scalafixDependencies += Libraries.organizeImports
 resolvers += Resolver.sonatypeRepo("snapshots")
 
 val scalafixCommonSettings = inConfig(IntegrationTest)(scalafixConfigSettings(IntegrationTest))
+
 lazy val root = (project in file("."))
-  .settings(
-    name := "shopping-cart"
+  .settings(name := "shopping-cart")
+  .aggregate(
+    core,
+    `persistence-db-postgres-skunk`,
+    // old stuff
+    `big-ball-of-mud`,
+    tests
   )
-  .aggregate(core, tests)
 
 lazy val tests = (project in file("modules/tests"))
   .configs(IntegrationTest)
@@ -38,9 +45,60 @@ lazy val tests = (project in file("modules/tests"))
       Libraries.weaverScalaCheck
     )
   )
-  .dependsOn(core)
+  .dependsOn(`big-ball-of-mud`)
 
-lazy val core = (project in file("modules/core"))
+// add scalafixCommon settings (removed because they refer to Integration)
+lazy val core =
+  project
+    .in(file("01-core"))
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.cats,
+        Libraries.derevoCore,
+        Libraries.derevoCats,
+        Libraries.monocleCore,
+        Libraries.newtype,
+        Libraries.refinedCore,
+        Libraries.refinedCats,
+        Libraries.squants
+      )
+    )
+
+lazy val `persistence-db-postgres-skunk` =
+  project
+    .in(file("02-o-persistence-db-postgres-skunk"))
+    .dependsOn(core % Cctt)
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.catsEffect,
+        Libraries.catsRetry,
+        // Libraries.circeCore,
+        // Libraries.circeGeneric,
+        // Libraries.circeParser,
+        // Libraries.circeRefined,
+        // Libraries.derevoCirce,
+        Libraries.fs2,
+        Libraries.javaxCrypto, // TODO, ensure that we actually need it
+        Libraries.log4cats,
+        Libraries.logback % Runtime, // TODO, ensure that we actually need it
+        Libraries.skunkCore,
+        Libraries.skunkCirce
+      )
+    )
+
+lazy val `big-ball-of-mud` = (project in file("modules/core"))
   .enablePlugins(DockerPlugin)
   .enablePlugins(AshScriptPlugin)
   .settings(
@@ -94,3 +152,6 @@ lazy val core = (project in file("modules/core"))
   )
 
 addCommandAlias("runLinter", ";scalafixAll --rules OrganizeImports")
+
+lazy val Cctt: String =
+  "compile->compile;test->test"

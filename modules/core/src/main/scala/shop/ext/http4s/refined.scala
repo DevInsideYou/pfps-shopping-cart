@@ -16,7 +16,8 @@ object refined {
   ): QueryParamDecoder[T Refined P] =
     QueryParamDecoder[T].emap(refineV[P](_).leftMap(m => ParseFailure(m, m)))
 
-  implicit class RefinedRequestDecoder[F[_]: JsonDecoder: MonadThrow](req: Request[F]) extends Http4sDsl[F] {
+  implicit class RefinedRequestDecoder[F[_]: JsonDecoder: MonadThrow](req: Request[F])
+      extends Http4sDsl[F] {
 
     def decodeR[A: Decoder](f: A => F[Response[F]]): F[Response[F]] =
       req.asJsonDecode[A].attempt.flatMap {

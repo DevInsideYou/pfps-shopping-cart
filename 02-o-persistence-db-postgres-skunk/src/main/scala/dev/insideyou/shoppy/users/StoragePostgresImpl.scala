@@ -1,0 +1,77 @@
+package dev.insideyou
+package shoppy
+package users
+
+import cats.syntax.all._
+import cats.effect._
+
+import skunk._
+import skunk.codec.all._
+import skunk.implicits._
+
+object StoragePostgresImpl {
+  def make[F[_]: GenUUID: MonadCancelThrow](
+      postgres: Resource[F, Session[F]]
+  ): Storage[F] =
+    new Storage[F] {
+      import UserSQL._
+
+      override def find(username: UserName): F[Option[UserWithPassword]] =
+        postgres.use { session =>
+          session.prepare(selectUser).use { q =>
+            q.option(username).map {
+              case Some(u ~ p) => UserWithPassword(u.id, u.name, p).some
+              case _           => none[UserWithPassword]
+            }
+          }
+        }
+
+      override def create(
+          username: UserName,
+          password: EncryptedPassword
+      ): F[Either[UserNameInUse, UserId]] =
+        postgres.use { session =>
+          session.prepare(insertUser).use { cmd =>
+            ID.make[F, UserId].flatMap { id =>
+              cmd
+                .execute(User(id, username) ~ password)
+                .as(id.asRight[UserNameInUse])
+                .recoverWith {
+                  case SqlState.UniqueViolation(_) =>
+                    UserNameInUse(username).asLeft.pure
+                }
+            }
+          }
+        }
+    }
+
+  private object UserSQL {
+    val userId: Codec[UserId]     = uuid.imap[UserId](UserId(_))(_.value)
+    val userName: Codec[UserName] = varchar.imap[UserName](UserName(_))(_.value)
+    val encPassword: Codec[EncryptedPassword] =
+      varchar.imap[EncryptedPassword](EncryptedPassword(_))(_.value)
+
+    final case class User(id: UserId, name: UserName)
+
+    val codec: Codec[User ~ EncryptedPassword] =
+      (userId ~ userName ~ encPassword).imap {
+        case i ~ n ~ p =>
+          User(i, n) ~ p
+      } {
+        case u ~ p =>
+          u.id ~ u.name ~ p
+      }
+
+    val selectUser: Query[UserName, User ~ EncryptedPassword] =
+      sql"""
+        SELECT * FROM users
+        WHERE name = $userName
+       """.query(codec)
+
+    val insertUser: Command[User ~ EncryptedPassword] =
+      sql"""
+        INSERT INTO users
+        VALUES ($codec)
+        """.command
+  }
+}

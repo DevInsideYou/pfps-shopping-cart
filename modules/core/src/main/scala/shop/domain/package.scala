@@ -22,7 +22,8 @@ trait OrphanInstances {
       def combine(x: Money, y: Money): Money = x + y
     }
 
-  implicit val currencyEq: Eq[Currency] = Eq.and(Eq.and(Eq.by(_.code), Eq.by(_.symbol)), Eq.by(_.name))
+  implicit val currencyEq: Eq[Currency] =
+    Eq.and(Eq.and(Eq.by(_.code), Eq.by(_.symbol)), Eq.by(_.name))
 
   implicit val moneyEq: Eq[Money] = Eq.and(Eq.by(_.amount), Eq.by(_.currency))
 

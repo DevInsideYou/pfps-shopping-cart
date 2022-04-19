@@ -29,5 +29,6 @@ object codecs {
 
   val money: Codec[Money] = numeric.imap[Money](USD(_))(_.amount)
 
-  val encPassword: Codec[EncryptedPassword] = varchar.imap[EncryptedPassword](EncryptedPassword(_))(_.value)
+  val encPassword: Codec[EncryptedPassword] =
+    varchar.imap[EncryptedPassword](EncryptedPassword(_))(_.value)
 }

@@ -51,9 +51,10 @@ sealed abstract class HttpApi[F[_]: Async] private (
   private val orderRoutes    = OrderRoutes[F](services.orders).routes(usersMiddleware)
 
   // Admin routes
-  private val adminBrandRoutes    = AdminBrandRoutes[F](services.brands).routes(adminMiddleware)
-  private val adminCategoryRoutes = AdminCategoryRoutes[F](services.categories).routes(adminMiddleware)
-  private val adminItemRoutes     = AdminItemRoutes[F](services.items).routes(adminMiddleware)
+  private val adminBrandRoutes = AdminBrandRoutes[F](services.brands).routes(adminMiddleware)
+  private val adminCategoryRoutes =
+    AdminCategoryRoutes[F](services.categories).routes(adminMiddleware)
+  private val adminItemRoutes = AdminItemRoutes[F](services.items).routes(adminMiddleware)
 
   // Combining all the http routes
   private val openRoutes: HttpRoutes[F] =
