@@ -1,13 +1,15 @@
 package dev.insideyou
 package shoppy
+package users
 
-import java.util.UUID
+import scala.concurrent.duration.FiniteDuration
 
 import derevo.cats._
 import derevo.derive
 import io.estatico.newtype.macros.newtype
+import java.util.UUID
 
-package object users {
+package object auth {
   @derive(eqv, show)
   @newtype
   case class UserName(value: String)
@@ -19,4 +21,11 @@ package object users {
   @derive(eqv, show, uuid)
   @newtype
   case class UserId(value: UUID)
+
+  @derive(eqv, show)
+  @newtype
+  final case class Password(value: String)
+
+  @newtype
+  final case class TokenExpiration(value: FiniteDuration)
 }

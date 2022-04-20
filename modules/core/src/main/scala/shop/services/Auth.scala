@@ -72,8 +72,8 @@ object Auth {
             for {
               i <- users.create(username, crypto.encrypt(password))
               t <- tokens.create
-              u = User(i, username).asJson.noSpaces
-              _ <- redis.setEx(t.value, u, TokenExpiration)
+              user = User(i, username)
+              _ <- redis.setEx(t.value, user.asJson.noSpaces, TokenExpiration)
               _ <- redis.setEx(username.show, t.value, TokenExpiration)
             } yield t
         }
@@ -83,12 +83,12 @@ object Auth {
           case None => UserNotFound(username).raiseError[F, JwtToken]
           case Some(user) if user.password =!= crypto.encrypt(password) =>
             InvalidPassword(user.name).raiseError[F, JwtToken]
-          case Some(user) =>
+          case Some(userWithPassword) =>
             redis.get(username.show).flatMap {
               case Some(t) => JwtToken(t).pure[F]
               case None =>
                 tokens.create.flatTap { t =>
-                  redis.setEx(t.value, user.asJson.noSpaces, TokenExpiration) *>
+                  redis.setEx(t.value, userWithPassword.asJson.noSpaces, TokenExpiration) *>
                     redis.setEx(username.show, t.value, TokenExpiration)
                 }
             }
