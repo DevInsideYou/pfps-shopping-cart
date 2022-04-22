@@ -2,12 +2,15 @@ package dev.insideyou
 package shoppy
 package users
 
+import java.util.UUID
+
 import scala.concurrent.duration.FiniteDuration
 
 import derevo.cats._
 import derevo.derive
+import eu.timepit.refined.cats._
+import eu.timepit.refined.types.all._
 import io.estatico.newtype.macros.newtype
-import java.util.UUID
 
 package object auth {
   @derive(eqv, show)
@@ -28,4 +31,8 @@ package object auth {
 
   @newtype
   final case class TokenExpiration(value: FiniteDuration)
+
+  @derive(show)
+  @newtype
+  final case class PasswordSalt(secret: NonEmptyString)
 }

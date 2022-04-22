@@ -26,16 +26,20 @@ object Gate {
       ): F[Either[UserNameInUse, UserId]] =
         storage.createUser(username, password)
 
-      def encrypt(value: Password): EncryptedPassword =
-        crypto.encrypt(value)
+      override def encrypt(password: Password): EncryptedPassword =
+        crypto.encrypt(password)
 
-      lazy val createToken: F[JwtToken] =
-        tokens.createToken
+      override def createToken(config: Config): F[JwtToken] =
+        tokens.createToken(config)
 
-      def setUserInRedis(user: User, token: JwtToken, expiresIn: TokenExpiration): F[Unit] =
+      override def setUserInRedis(
+          user: User,
+          token: JwtToken,
+          expiresIn: TokenExpiration
+      ): F[Unit] =
         redis.setUserInRedis(user, token, expiresIn)
 
-      def setUserWithPasswordInRedis(
+      override def setUserWithPasswordInRedis(
           user: UserWithPassword,
           expiresIn: TokenExpiration
       )(
@@ -65,7 +69,7 @@ trait Crypto {
 }
 
 trait Tokens[F[_]] {
-  def createToken: F[JwtToken]
+  def createToken(config: Config): F[JwtToken]
 }
 
 trait Redis[F[_]] {

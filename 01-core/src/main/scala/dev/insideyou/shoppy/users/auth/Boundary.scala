@@ -23,10 +23,10 @@ object BoundaryImpl {
 
       private def create(username: UserName, password: Password): F[JwtToken] =
         for {
-          userId          <- createOrRaise(username, password)
-          token           <- gate.createToken
-          tokenExpiration <- getTokenExpiration
-          _               <- gate.setUserInRedis(User(userId, username), token, tokenExpiration)
+          config <- gate.config
+          userId <- createOrRaise(username, password)
+          token  <- gate.createToken(config)
+          _      <- gate.setUserInRedis(User(userId, username), token, config.tokenExpiration)
         } yield token
 
       private def createOrRaise(username: UserName, password: Password): F[UserId] =
@@ -34,9 +34,12 @@ object BoundaryImpl {
           .createUser(username, gate.encrypt(password))
           .flatMap(_.fold(_.raiseError, _.pure))
 
-      override def login(username: UserName, password: Password): F[JwtToken] =
+      override def login(
+          username: UserName,
+          password: Password
+      ): F[JwtToken] =
         for {
-          tokenExpiration <- getTokenExpiration
+          config <- gate.config
           token <- gate.findUser(username).flatMap {
             case None =>
               UserNotFound(username).raiseError[F, JwtToken]
@@ -45,27 +48,25 @@ object BoundaryImpl {
               InvalidPassword(user.name).raiseError[F, JwtToken]
 
             case Some(userWithPassword) =>
-              getOrElseCreateToken(username, userWithPassword, tokenExpiration)
+              getOrElseCreateToken(username, userWithPassword, config)
           }
         } yield token
 
       private def getOrElseCreateToken(
           username: UserName,
           userWithPassword: UserWithPassword,
-          tokenExpiration: TokenExpiration
+          config: Config
       ): F[JwtToken] =
         gate.getTokenFromRedis(username).flatMap {
           case Some(t) => t.pure[F]
           case None =>
-            gate.createToken
-              .flatTap(gate.setUserWithPasswordInRedis(userWithPassword, tokenExpiration))
+            gate
+              .createToken(config)
+              .flatTap(gate.setUserWithPasswordInRedis(userWithPassword, config.tokenExpiration))
 
         }
 
       override def logout(token: JwtToken, username: UserName): F[Unit] =
         gate.deleteUserInRedis(username, token)
-
-      private lazy val getTokenExpiration =
-        gate.config.map(_.tokenExpiration)
     }
 }

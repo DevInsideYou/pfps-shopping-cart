@@ -18,7 +18,12 @@ lazy val root = (project in file("."))
   .settings(name := "shopping-cart")
   .aggregate(
     core,
+    `cats-effect-util`,
+    `delivery-http-http4s`,
+    `config-file-ciris`,
+    `cryptography-jsr105-api`,
     `persistence-db-postgres-skunk`,
+    `tokens-jwt-pdi`,
     // old stuff
     `big-ball-of-mud`,
     tests
@@ -70,6 +75,21 @@ lazy val core =
       )
     )
 
+lazy val `cats-effect-util` =
+  project
+    .in(file("02-c-cats-effect-util"))
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.catsEffect
+      )
+    )
+
 lazy val `delivery-http-http4s` =
   project
     .in(file("02-i-delivery-http-http4s"))
@@ -106,7 +126,12 @@ lazy val `delivery-http-http4s` =
 lazy val `persistence-db-postgres-skunk` =
   project
     .in(file("02-o-persistence-db-postgres-skunk"))
-    .dependsOn(core % Cctt)
+    .dependsOn(
+      Seq(
+        core,
+        `cats-effect-util`
+      ).map(_ % Cctt): _*
+    )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
       scalafmtOnCompile := true,
@@ -138,6 +163,7 @@ lazy val `config-file-ciris` =
         CompilerPlugin.kindProjector,
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
+        Libraries.catsEffect,
         Libraries.cirisCore,
         Libraries.cirisEnum,
         Libraries.cirisRefined
@@ -158,6 +184,56 @@ lazy val `cryptography-jsr105-api` =
         CompilerPlugin.semanticDB,
         Libraries.catsEffect,
         Libraries.javaxCrypto
+      )
+    )
+
+lazy val `tokens-jwt-pdi` =
+  project
+    .in(file("02-o-tokens-jwt-pdi"))
+    .dependsOn(
+      core               % Cctt,
+      `cats-effect-util` % Cctt
+    )
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.catsEffect,
+        //
+        Libraries.circeCore,
+        Libraries.circeGeneric,
+        Libraries.circeParser,
+        Libraries.circeRefined,
+        Libraries.derevoCirce,
+        Libraries.http4sJwtAuth
+      )
+    )
+
+lazy val `main` =
+  project
+    .in(file("03-main"))
+    .dependsOn(
+      Seq(
+        `delivery-http-http4s`,
+        `config-file-ciris`,
+        `cryptography-jsr105-api`,
+        `persistence-db-postgres-skunk`,
+        `tokens-jwt-pdi`
+        // TODO redis stuff
+      ).map(_ % Cctt): _*
+    )
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB
       )
     )
 

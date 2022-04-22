@@ -3,25 +3,19 @@ package shoppy
 package users
 package auth
 
-import derevo.cats.show
-import derevo.derive
-import eu.timepit.refined.cats._
-import eu.timepit.refined.types.net.UserPortNumber
-import eu.timepit.refined.types.numeric.PosInt
-import eu.timepit.refined.types.string.NonEmptyString
-import io.estatico.newtype.macros.newtype
 import java.security.SecureRandom
 import java.util.Base64
-import javax.crypto.spec.{ IvParameterSpec, PBEKeySpec, SecretKeySpec }
-import javax.crypto.{ Cipher, SecretKeyFactory }
+import javax.crypto.spec._
+import javax.crypto._
 
 import cats.effect.Sync
 import cats.syntax.all._
 import eu.timepit.refined.auto._
+import io.estatico.newtype.macros.newtype
 
 object CryptoImpl {
   def make[F[_]: Sync](passwordSalt: PasswordSalt): F[Crypto] =
-    Sync[F].delay(thingy(passwordSalt)).map {
+    Sync[F].delay(cipher(passwordSalt)).map {
       case (ec, dc) =>
         new Crypto {
           override def encrypt(password: Password): EncryptedPassword = {
@@ -41,7 +35,7 @@ object CryptoImpl {
         }
     }
 
-  private def thingy(passwordSalt: PasswordSalt): (EncryptCipher, DecryptCipher) = {
+  private def cipher(passwordSalt: PasswordSalt): (EncryptCipher, DecryptCipher) = {
     val random  = new SecureRandom()
     val ivBytes = new Array[Byte](16)
     random.nextBytes(ivBytes)
@@ -57,10 +51,6 @@ object CryptoImpl {
     dCipher.value.init(Cipher.DECRYPT_MODE, sKeySpec, iv)
     (eCipher, dCipher)
   }
-
-  @derive(show)
-  @newtype
-  final case class PasswordSalt(secret: NonEmptyString)
 
   @newtype
   final case class EncryptCipher(value: Cipher)

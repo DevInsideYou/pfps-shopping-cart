@@ -3,4 +3,8 @@ package shoppy
 package users
 package auth
 
-final case class Config(tokenExpiration: TokenExpiration)
+final case class Config(
+    tokenExpiration: TokenExpiration,
+    jwtAccessTokenKeyConfig: JwtAccessTokenKeyConfig,
+    passwordSalt: PasswordSalt
+)
