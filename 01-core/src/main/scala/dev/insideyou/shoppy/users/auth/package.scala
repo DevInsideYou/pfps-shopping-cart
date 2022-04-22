@@ -12,15 +12,15 @@ import java.util.UUID
 package object auth {
   @derive(eqv, show)
   @newtype
-  case class UserName(value: String)
+  final case class UserName(value: String)
 
   @derive(eqv, show)
   @newtype
-  case class EncryptedPassword(value: String)
+  final case class EncryptedPassword(value: String)
 
   @derive(eqv, show, uuid)
   @newtype
-  case class UserId(value: UUID)
+  final case class UserId(value: UUID)
 
   @derive(eqv, show)
   @newtype

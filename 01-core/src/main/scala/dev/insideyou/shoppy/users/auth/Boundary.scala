@@ -6,15 +6,15 @@ package auth
 import cats._
 import cats.syntax.all._
 
-trait Auth[F[_]] {
+trait Boundary[F[_]] {
   def newUser(username: UserName, password: Password): F[JwtToken]
   def login(username: UserName, password: Password): F[JwtToken]
   def logout(token: JwtToken, username: UserName): F[Unit]
 }
 
-object AuthImpl {
-  def make[F[_]: MonadThrow](gate: Gate[F]): Auth[F] =
-    new Auth[F] {
+object BoundaryImpl {
+  def make[F[_]: MonadThrow](gate: Gate[F]): Boundary[F] =
+    new Boundary[F] {
       override def newUser(username: UserName, password: Password): F[JwtToken] =
         gate.findUser(username).flatMap {
           case Some(_) => UserNameInUse(username).raiseError

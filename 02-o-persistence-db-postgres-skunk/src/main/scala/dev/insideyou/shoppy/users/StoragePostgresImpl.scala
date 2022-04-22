@@ -1,6 +1,7 @@
 package dev.insideyou
 package shoppy
 package users
+package auth
 
 import cats.syntax.all._
 import cats.effect._
@@ -16,7 +17,7 @@ object StoragePostgresImpl {
     new Storage[F] {
       import UserSQL._
 
-      override def find(username: UserName): F[Option[UserWithPassword]] =
+      override def findUser(username: UserName): F[Option[UserWithPassword]] =
         postgres.use { session =>
           session.prepare(selectUser).use { q =>
             q.option(username).map {
@@ -26,7 +27,7 @@ object StoragePostgresImpl {
           }
         }
 
-      override def create(
+      override def createUser(
           username: UserName,
           password: EncryptedPassword
       ): F[Either[UserNameInUse, UserId]] =

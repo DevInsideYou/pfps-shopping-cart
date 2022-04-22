@@ -61,7 +61,7 @@ trait Storage[F[_]] {
 }
 
 trait Crypto {
-  def encrypt(value: Password): EncryptedPassword
+  def encrypt(password: Password): EncryptedPassword
 }
 
 trait Tokens[F[_]] {

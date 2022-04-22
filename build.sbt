@@ -70,6 +70,39 @@ lazy val core =
       )
     )
 
+lazy val `delivery-http-http4s` =
+  project
+    .in(file("02-i-delivery-http-http4s"))
+    .dependsOn(core % Cctt)
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        //
+        Libraries.catsEffect,
+        Libraries.catsRetry, // TODO check if we need this
+        Libraries.circeCore,
+        Libraries.circeGeneric,
+        Libraries.circeParser,
+        Libraries.circeRefined,
+        Libraries.derevoCirce,
+        Libraries.fs2, // TODO check if we need this
+        Libraries.http4sDsl,
+        Libraries.http4sServer,
+        Libraries.http4sClient,
+        Libraries.http4sCirce,
+        Libraries.http4sJwtAuth,
+        Libraries.javaxCrypto, // TODO check if we need this
+        Libraries.log4cats     // TODO check if we need this
+        // Libraries.redis4catsEffects,
+        // Libraries.redis4catsLog4cats,
+      )
+    )
+
 lazy val `persistence-db-postgres-skunk` =
   project
     .in(file("02-o-persistence-db-postgres-skunk"))
@@ -84,17 +117,47 @@ lazy val `persistence-db-postgres-skunk` =
         CompilerPlugin.semanticDB,
         Libraries.catsEffect,
         Libraries.catsRetry,
-        // Libraries.circeCore,
-        // Libraries.circeGeneric,
-        // Libraries.circeParser,
-        // Libraries.circeRefined,
-        // Libraries.derevoCirce,
         Libraries.fs2,
         Libraries.javaxCrypto, // TODO, ensure that we actually need it
         Libraries.log4cats,
         Libraries.logback % Runtime, // TODO, ensure that we actually need it
         Libraries.skunkCore,
         Libraries.skunkCirce
+      )
+    )
+
+lazy val `config-file-ciris` =
+  project
+    .in(file("02-o-config-file-ciris"))
+    .dependsOn(core % Cctt)
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.cirisCore,
+        Libraries.cirisEnum,
+        Libraries.cirisRefined
+      )
+    )
+
+lazy val `cryptography-jsr105-api` =
+  project
+    .in(file("02-o-cryptography-jsr105-api"))
+    .dependsOn(core % Cctt)
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.catsEffect,
+        Libraries.javaxCrypto
       )
     )
 
