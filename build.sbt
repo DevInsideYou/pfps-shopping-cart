@@ -18,8 +18,12 @@ lazy val root = (project in file("."))
   .settings(name := "shopping-cart")
   .aggregate(
     core,
+    // c
     `cats-effect-util`,
+    // i
     `delivery-http-http4s`,
+    // o
+    `cache-redis-redis4cats`,
     `config-file-ciris`,
     `cryptography-jsr105-api`,
     `persistence-db-postgres-skunk`,
@@ -123,15 +127,10 @@ lazy val `delivery-http-http4s` =
       )
     )
 
-lazy val `persistence-db-postgres-skunk` =
+lazy val `cache-redis-redis4cats` =
   project
-    .in(file("02-o-persistence-db-postgres-skunk"))
-    .dependsOn(
-      Seq(
-        core,
-        `cats-effect-util`
-      ).map(_ % Cctt): _*
-    )
+    .in(file("02-o-cache-redis-redis4cats"))
+    .dependsOn(core % Cctt)
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
       scalafmtOnCompile := true,
@@ -140,14 +139,13 @@ lazy val `persistence-db-postgres-skunk` =
         CompilerPlugin.kindProjector,
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
-        Libraries.catsEffect,
-        Libraries.catsRetry,
-        Libraries.fs2,
-        Libraries.javaxCrypto, // TODO, ensure that we actually need it
-        Libraries.log4cats,
-        Libraries.logback % Runtime, // TODO, ensure that we actually need it
-        Libraries.skunkCore,
-        Libraries.skunkCirce
+        Libraries.circeCore,
+        Libraries.circeGeneric,
+        Libraries.circeParser,
+        Libraries.circeRefined,
+        Libraries.derevoCirce,
+        Libraries.redis4catsEffects,
+        Libraries.redis4catsLog4cats
       )
     )
 
@@ -187,6 +185,34 @@ lazy val `cryptography-jsr105-api` =
       )
     )
 
+lazy val `persistence-db-postgres-skunk` =
+  project
+    .in(file("02-o-persistence-db-postgres-skunk"))
+    .dependsOn(
+      Seq(
+        core,
+        `cats-effect-util`
+      ).map(_ % Cctt): _*
+    )
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.catsEffect,
+        Libraries.catsRetry,
+        Libraries.fs2,
+        Libraries.javaxCrypto, // TODO, ensure that we actually need it
+        Libraries.log4cats,
+        Libraries.logback % Runtime, // TODO, ensure that we actually need it
+        Libraries.skunkCore,
+        Libraries.skunkCirce
+      )
+    )
+
 lazy val `tokens-jwt-pdi` =
   project
     .in(file("02-o-tokens-jwt-pdi"))
@@ -213,17 +239,19 @@ lazy val `tokens-jwt-pdi` =
       )
     )
 
-lazy val `main` =
+lazy val main =
   project
     .in(file("03-main"))
     .dependsOn(
       Seq(
+        // i
         `delivery-http-http4s`,
+        // o
+        `cache-redis-redis4cats`,
         `config-file-ciris`,
         `cryptography-jsr105-api`,
         `persistence-db-postgres-skunk`,
         `tokens-jwt-pdi`
-        // TODO redis stuff
       ).map(_ % Cctt): _*
     )
     .settings(

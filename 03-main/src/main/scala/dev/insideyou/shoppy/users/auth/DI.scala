@@ -3,13 +3,16 @@ package shoppy
 package users
 package auth
 
-import cats.syntax.all._
+import cats._
 import cats.effect._
+import cats.syntax.all._
+import dev.profunktor.redis4cats.RedisCommands
 import skunk.Session
 
 object DI {
-  def make[F[_]: Async: GenUUID: JwtExpire](
-      postgres: Resource[F, Session[F]]
+  def make[F[_]: Async: GenUUID: JwtExpire: NonEmptyParallel](
+      postgres: Resource[F, Session[F]],
+      redis: RedisCommands[F, String, String]
   ): F[Controller[F]] =
     for {
       hasConfig <- HasConfigImpl.make.pure[F]
@@ -23,7 +26,7 @@ object DI {
             storage = StoragePostgresImpl.make(postgres),
             crypto = crypto,
             tokens = TokensImpl.make,
-            redis = null // TODO
+            redis = RedisImpl.make(redis)
           )
         )
       )

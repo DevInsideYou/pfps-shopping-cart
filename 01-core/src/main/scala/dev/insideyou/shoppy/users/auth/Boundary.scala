@@ -24,12 +24,12 @@ object BoundaryImpl {
       private def create(username: UserName, password: Password): F[JwtToken] =
         for {
           config <- gate.config
-          userId <- createOrRaise(username, password)
+          userId <- createOrRaiseIfInUse(username, password)
           token  <- gate.createToken(config)
           _      <- gate.setUserInRedis(User(userId, username), token, config.tokenExpiration)
         } yield token
 
-      private def createOrRaise(username: UserName, password: Password): F[UserId] =
+      private def createOrRaiseIfInUse(username: UserName, password: Password): F[UserId] =
         gate
           .createUser(username, gate.encrypt(password))
           .flatMap(_.fold(_.raiseError, _.pure))
@@ -48,22 +48,20 @@ object BoundaryImpl {
               InvalidPassword(user.name).raiseError[F, JwtToken]
 
             case Some(userWithPassword) =>
-              getOrElseCreateToken(username, userWithPassword, config)
+              getOrElseCreateToken(userWithPassword, config)
           }
         } yield token
 
       private def getOrElseCreateToken(
-          username: UserName,
           userWithPassword: UserWithPassword,
           config: Config
       ): F[JwtToken] =
-        gate.getTokenFromRedis(username).flatMap {
-          case Some(t) => t.pure[F]
+        gate.getTokenFromRedis(userWithPassword.name).flatMap {
+          case Some(t) => t.pure
           case None =>
             gate
               .createToken(config)
               .flatTap(gate.setUserWithPasswordInRedis(userWithPassword, config.tokenExpiration))
-
         }
 
       override def logout(token: JwtToken, username: UserName): F[Unit] =
