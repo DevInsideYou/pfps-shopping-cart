@@ -35,4 +35,12 @@ package object auth {
   @derive(show)
   @newtype
   final case class PasswordSalt(secret: NonEmptyString)
+
+  @derive(show)
+  @newtype
+  final case class CommonUser(value: User)
+
+  @derive(show)
+  @newtype
+  final case class JwtAccessTokenKeyConfig(secret: NonEmptyString)
 }

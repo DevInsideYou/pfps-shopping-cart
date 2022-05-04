@@ -6,8 +6,8 @@ package auth
 import cats._
 import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
-import io.circe._
-import io.circe.syntax._
+// import io.circe._
+// import io.circe.syntax._
 
 // TODO remove the dependency on JSON
 
@@ -17,11 +17,11 @@ object RedisImpl {
   ): Redis[F] =
     new Redis[F] {
       override def setUserInRedis(
-          user: User,
+          user: String,
           token: JwtToken,
           expiresIn: TokenExpiration
       ): F[Unit] =
-        redis.setEx(token.value, user.asJson.noSpaces, expiresIn.value)
+        redis.setEx(token.value, user, expiresIn.value)
 
       override def setUserWithPasswordInRedis(
           user: UserWithPassword,
@@ -38,11 +38,11 @@ object RedisImpl {
         (redis.del(token.show), redis.del(username.show)).parTupled.void
     }
 
-  @scala.annotation.nowarn("cat=unused")
-  private implicit lazy val a: Encoder[User] = {
-    implicit lazy val b: Encoder[UserId]   = UserId.deriving
-    implicit lazy val c: Encoder[UserName] = UserName.deriving
+  // @scala.annotation.nowarn("cat=unused")
+  // private implicit lazy val a: Encoder[User] = {
+  //   implicit lazy val b: Encoder[UserId]   = UserId.deriving
+  //   implicit lazy val c: Encoder[UserName] = UserName.deriving
 
-    derevo.circe.magnolia.encoder.instance
-  }
+  //   derevo.circe.magnolia.encoder.instance
+  // }
 }

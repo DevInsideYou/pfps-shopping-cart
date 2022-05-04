@@ -3,7 +3,13 @@ package shoppy
 package users
 package auth
 
-trait Gate[F[_]] extends HasConfig[F] with Storage[F] with Crypto with Tokens[F] with Redis[F]
+trait Gate[F[_]]
+    extends HasConfig[F]
+    with Storage[F]
+    with Crypto
+    with Tokens[F]
+    with Redis[F]
+    with KeyMaker[F]
 
 object Gate {
   def make[F[_]](
@@ -11,10 +17,11 @@ object Gate {
       storage: Storage[F],
       crypto: Crypto,
       tokens: Tokens[F],
-      redis: Redis[F]
+      redis: Redis[F],
+      keyMaker: KeyMaker[F]
   ): Gate[F] =
     new Gate[F] {
-      def config: F[Config] =
+      override def config: F[Config] =
         hasConfig.config
 
       override def findUser(username: UserName): F[Option[UserWithPassword]] =
@@ -33,7 +40,7 @@ object Gate {
         tokens.createToken(config)
 
       override def setUserInRedis(
-          user: User,
+          user: String,
           token: JwtToken,
           expiresIn: TokenExpiration
       ): F[Unit] =
@@ -47,11 +54,15 @@ object Gate {
       ): F[Unit] =
         redis.setUserWithPasswordInRedis(user, expiresIn)(token)
 
-      def getTokenFromRedis(username: UserName): F[Option[JwtToken]] =
+      override def getTokenFromRedis(username: UserName): F[Option[JwtToken]] =
         redis.getTokenFromRedis(username)
 
-      def deleteUserInRedis(username: UserName, token: JwtToken): F[Unit] =
+      override def deleteUserInRedis(username: UserName, token: JwtToken): F[Unit] =
         redis.deleteUserInRedis(username, token)
+
+      override def makeUserKey(user: User): F[String] =
+        keyMaker.makeUserKey(user)
+
     }
 }
 
@@ -73,7 +84,8 @@ trait Tokens[F[_]] {
 }
 
 trait Redis[F[_]] {
-  def setUserInRedis(user: User, token: JwtToken, expiresIn: TokenExpiration): F[Unit]
+  // TODO use newtype instead of String (maybe even NonEmptyString)
+  def setUserInRedis(user: String, token: JwtToken, expiresIn: TokenExpiration): F[Unit]
 
   def setUserWithPasswordInRedis(
       user: UserWithPassword,
@@ -84,4 +96,8 @@ trait Redis[F[_]] {
 
   def getTokenFromRedis(username: UserName): F[Option[JwtToken]]
   def deleteUserInRedis(username: UserName, token: JwtToken): F[Unit]
+}
+
+trait KeyMaker[F[_]] {
+  def makeUserKey(user: User): F[String]
 }

@@ -16,7 +16,7 @@ final case class LogoutRoutes[F[_]: Monad](
 
   private[routes] val prefixPath = "/auth"
 
-  private val httpRoutes: AuthedRoutes[CommonUser, F] = AuthedRoutes.of {
+  private val httpRoutes = AuthedRoutes.of[CommonUser, F] {
 
     case ar @ POST -> Root / "logout" as user =>
       AuthHeaders

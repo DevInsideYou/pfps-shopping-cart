@@ -26,7 +26,8 @@ object BoundaryImpl {
           config <- gate.config
           userId <- createOrRaiseIfInUse(username, password)
           token  <- gate.createToken(config)
-          _      <- gate.setUserInRedis(User(userId, username), token, config.tokenExpiration)
+          key    <- gate.makeUserKey(User(userId, username))
+          _      <- gate.setUserInRedis(key, token, config.tokenExpiration)
         } yield token
 
       private def createOrRaiseIfInUse(username: UserName, password: Password): F[UserId] =

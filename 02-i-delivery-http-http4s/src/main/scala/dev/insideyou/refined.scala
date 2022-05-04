@@ -10,7 +10,6 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 
 object refined {
-
   implicit def refinedQueryParamDecoder[T: QueryParamDecoder, P](
       implicit ev: Validate[T, P]
   ): QueryParamDecoder[T Refined P] =
@@ -28,7 +27,5 @@ object refined {
           }
         case Right(a) => f(a)
       }
-
   }
-
 }

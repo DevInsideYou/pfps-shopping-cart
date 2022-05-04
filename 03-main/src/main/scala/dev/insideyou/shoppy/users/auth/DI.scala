@@ -8,12 +8,14 @@ import cats.effect._
 import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
 import skunk.Session
+import org.http4s.server.AuthMiddleware
 
 object DI {
   def make[F[_]: Async: GenUUID: JwtExpire: NonEmptyParallel](
       postgres: Resource[F, Session[F]],
-      redis: RedisCommands[F, String, String]
-  ): F[Controller[F]] =
+      redis: RedisCommands[F, String, String],
+      authMiddleware: AuthMiddleware[F, CommonUser]
+  ): F[OpenController[F]] =
     for {
       hasConfig <- HasConfigImpl.make.pure[F]
       config    <- hasConfig.config
@@ -26,9 +28,11 @@ object DI {
             storage = StoragePostgresImpl.make(postgres),
             crypto = crypto,
             tokens = TokensImpl.make,
-            redis = RedisImpl.make(redis)
+            redis = RedisImpl.make(redis),
+            keyMaker = null  // TODO
           )
-        )
+        ),
+        authMiddleware = authMiddleware
       )
     }
 }
