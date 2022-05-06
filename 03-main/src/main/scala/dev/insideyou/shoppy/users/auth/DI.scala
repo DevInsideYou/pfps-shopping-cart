@@ -29,7 +29,7 @@ object DI {
             crypto = crypto,
             tokens = TokensImpl.make,
             redis = RedisImpl.make(redis),
-            keyMaker = null  // TODO
+            reprMaker = ReprMakerImpl.make
           )
         ),
         authMiddleware = authMiddleware

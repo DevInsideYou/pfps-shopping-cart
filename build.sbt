@@ -20,6 +20,7 @@ lazy val root = (project in file("."))
     core,
     // c
     `cats-effect-util`,
+    `json-circe-util`,
     // i
     `delivery-http-http4s`,
     // o
@@ -27,6 +28,7 @@ lazy val root = (project in file("."))
     `config-file-ciris`,
     `cryptography-jsr105-api`,
     `persistence-db-postgres-skunk`,
+    `reprmaker-circe`,
     `tokens-jwt-pdi`,
     // old stuff
     `big-ball-of-mud`,
@@ -94,10 +96,9 @@ lazy val `cats-effect-util` =
       )
     )
 
-lazy val `delivery-http-http4s` =
+lazy val `json-circe-util` =
   project
-    .in(file("02-i-delivery-http-http4s"))
-    .dependsOn(core % Cctt)
+    .in(file("02-c-json-circe-util"))
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
       scalafmtOnCompile := true,
@@ -106,24 +107,40 @@ lazy val `delivery-http-http4s` =
         CompilerPlugin.kindProjector,
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
-        //
-        Libraries.catsEffect,
-        Libraries.catsRetry, // TODO check if we need this
         Libraries.circeCore,
         Libraries.circeGeneric,
         Libraries.circeParser,
         Libraries.circeRefined,
-        Libraries.derevoCirce,
-        Libraries.fs2, // TODO check if we need this
+        Libraries.derevoCirce
+      )
+    )
+
+lazy val `delivery-http-http4s` =
+  project
+    .in(file("02-i-delivery-http-http4s"))
+    .dependsOn(
+      Seq(
+        core,
+        `json-circe-util`
+      ).map(_ % Cctt): _*
+    )
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.catsEffect,
+        Libraries.catsRetry, // TODO check if we need this
+        Libraries.fs2,       // TODO check if we need this
         Libraries.http4sDsl,
         Libraries.http4sServer,
         Libraries.http4sClient,
         Libraries.http4sCirce,
         Libraries.http4sJwtAuth,
-        Libraries.javaxCrypto, // TODO check if we need this
-        Libraries.log4cats     // TODO check if we need this
-        // Libraries.redis4catsEffects,
-        // Libraries.redis4catsLog4cats,
+        Libraries.log4cats // TODO check if we need this
       )
     )
 
@@ -139,11 +156,6 @@ lazy val `cache-redis-redis4cats` =
         CompilerPlugin.kindProjector,
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
-        Libraries.circeCore,
-        Libraries.circeGeneric,
-        Libraries.circeParser,
-        Libraries.circeRefined,
-        Libraries.derevoCirce,
         Libraries.redis4catsEffects,
         Libraries.redis4catsLog4cats
       )
@@ -205,11 +217,30 @@ lazy val `persistence-db-postgres-skunk` =
         Libraries.catsEffect,
         Libraries.catsRetry,
         Libraries.fs2,
-        Libraries.javaxCrypto, // TODO, ensure that we actually need it
-        Libraries.log4cats,
+        Libraries.log4cats, // TODO, ensure that we actually need it
         Libraries.logback % Runtime, // TODO, ensure that we actually need it
         Libraries.skunkCore,
         Libraries.skunkCirce
+      )
+    )
+
+lazy val `reprmaker-circe` =
+  project
+    .in(file("02-o-reprmaker-circe"))
+    .dependsOn(
+      Seq(
+        core,
+        `json-circe-util`
+      ).map(_ % Cctt): _*
+    )
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      scalafmtOnCompile := true,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB
       )
     )
 
@@ -217,8 +248,11 @@ lazy val `tokens-jwt-pdi` =
   project
     .in(file("02-o-tokens-jwt-pdi"))
     .dependsOn(
-      core               % Cctt,
-      `cats-effect-util` % Cctt
+      Seq(
+        core,
+        `cats-effect-util`,
+        `json-circe-util`
+      ).map(_ % Cctt): _*
     )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
@@ -229,12 +263,6 @@ lazy val `tokens-jwt-pdi` =
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
         Libraries.catsEffect,
-        //
-        Libraries.circeCore,
-        Libraries.circeGeneric,
-        Libraries.circeParser,
-        Libraries.circeRefined,
-        Libraries.derevoCirce,
         Libraries.http4sJwtAuth
       )
     )
@@ -251,6 +279,7 @@ lazy val main =
         `config-file-ciris`,
         `cryptography-jsr105-api`,
         `persistence-db-postgres-skunk`,
+        `reprmaker-circe`,
         `tokens-jwt-pdi`
       ).map(_ % Cctt): _*
     )
@@ -268,6 +297,7 @@ lazy val main =
 lazy val `big-ball-of-mud` = (project in file("modules/core"))
   .enablePlugins(DockerPlugin)
   .enablePlugins(AshScriptPlugin)
+  .dependsOn(main % Cctt)
   .settings(
     name := "shopping-cart-core",
     Docker / packageName := "shopping-cart",

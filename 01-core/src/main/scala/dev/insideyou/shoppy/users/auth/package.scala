@@ -43,4 +43,8 @@ package object auth {
   @derive(show)
   @newtype
   final case class JwtAccessTokenKeyConfig(secret: NonEmptyString)
+
+  @derive(eqv, show)
+  @newtype
+  final case class UserRepr(value: NonEmptyString)
 }

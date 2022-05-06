@@ -9,7 +9,7 @@ trait Gate[F[_]]
     with Crypto
     with Tokens[F]
     with Redis[F]
-    with KeyMaker[F]
+    with ReprMaker[F]
 
 object Gate {
   def make[F[_]](
@@ -18,20 +18,20 @@ object Gate {
       crypto: Crypto,
       tokens: Tokens[F],
       redis: Redis[F],
-      keyMaker: KeyMaker[F]
+      reprMaker: ReprMaker[F]
   ): Gate[F] =
     new Gate[F] {
       override def config: F[Config] =
         hasConfig.config
 
-      override def findUser(username: UserName): F[Option[UserWithPassword]] =
-        storage.findUser(username)
+      override def findUser(userName: UserName): F[Option[UserWithPassword]] =
+        storage.findUser(userName)
 
       override def createUser(
-          username: UserName,
+          userName: UserName,
           password: EncryptedPassword
       ): F[Either[UserNameInUse, UserId]] =
-        storage.createUser(username, password)
+        storage.createUser(userName, password)
 
       override def encrypt(password: Password): EncryptedPassword =
         crypto.encrypt(password)
@@ -39,29 +39,30 @@ object Gate {
       override def createToken(config: Config): F[JwtToken] =
         tokens.createToken(config)
 
-      override def setUserInRedis(
-          user: String,
+      override def cacheUserInRedis(
+          userRepr: UserRepr,
+          userName: UserName,
           token: JwtToken,
           expiresIn: TokenExpiration
       ): F[Unit] =
-        redis.setUserInRedis(user, token, expiresIn)
+        redis.cacheUserInRedis(userRepr, userName, token, expiresIn)
 
-      override def setUserWithPasswordInRedis(
-          user: UserWithPassword,
+      override def cacheUserWithPasswordInRedis(
+          userWithPassword: UserWithPassword,
           expiresIn: TokenExpiration
       )(
           token: JwtToken
       ): F[Unit] =
-        redis.setUserWithPasswordInRedis(user, expiresIn)(token)
+        redis.cacheUserWithPasswordInRedis(userWithPassword, expiresIn)(token)
 
-      override def getTokenFromRedis(username: UserName): F[Option[JwtToken]] =
-        redis.getTokenFromRedis(username)
+      override def getTokenFromRedis(userName: UserName): F[Option[JwtToken]] =
+        redis.getTokenFromRedis(userName)
 
-      override def deleteUserInRedis(username: UserName, token: JwtToken): F[Unit] =
-        redis.deleteUserInRedis(username, token)
+      override def deleteUserInRedis(userName: UserName, token: JwtToken): F[Unit] =
+        redis.deleteUserInRedis(userName, token)
 
-      override def makeUserKey(user: User): F[String] =
-        keyMaker.makeUserKey(user)
+      override def makeUserRepr(user: User): F[UserRepr] =
+        reprMaker.makeUserRepr(user)
 
     }
 }
@@ -71,8 +72,8 @@ trait HasConfig[F[_]] {
 }
 
 trait Storage[F[_]] {
-  def findUser(username: UserName): F[Option[UserWithPassword]]
-  def createUser(username: UserName, password: EncryptedPassword): F[Either[UserNameInUse, UserId]]
+  def findUser(userName: UserName): F[Option[UserWithPassword]]
+  def createUser(userName: UserName, password: EncryptedPassword): F[Either[UserNameInUse, UserId]]
 }
 
 trait Crypto {
@@ -84,20 +85,24 @@ trait Tokens[F[_]] {
 }
 
 trait Redis[F[_]] {
-  // TODO use newtype instead of String (maybe even NonEmptyString)
-  def setUserInRedis(user: String, token: JwtToken, expiresIn: TokenExpiration): F[Unit]
+  def cacheUserInRedis(
+      userRepr: UserRepr,
+      userName: UserName,
+      token: JwtToken,
+      expiresIn: TokenExpiration
+  ): F[Unit]
 
-  def setUserWithPasswordInRedis(
-      user: UserWithPassword,
+  def cacheUserWithPasswordInRedis(
+      userWithPassword: UserWithPassword,
       expiresIn: TokenExpiration
   )(
       token: JwtToken
   ): F[Unit]
 
-  def getTokenFromRedis(username: UserName): F[Option[JwtToken]]
-  def deleteUserInRedis(username: UserName, token: JwtToken): F[Unit]
+  def getTokenFromRedis(userName: UserName): F[Option[JwtToken]]
+  def deleteUserInRedis(userName: UserName, token: JwtToken): F[Unit]
 }
 
-trait KeyMaker[F[_]] {
-  def makeUserKey(user: User): F[String]
+trait ReprMaker[F[_]] {
+  def makeUserRepr(user: User): F[UserRepr]
 }

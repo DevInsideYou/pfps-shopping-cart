@@ -6,43 +6,38 @@ package auth
 import cats._
 import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
-// import io.circe._
-// import io.circe.syntax._
-
-// TODO remove the dependency on JSON
 
 object RedisImpl {
   def make[F[_]: NonEmptyParallel: Functor](
       redis: RedisCommands[F, String, String]
   ): Redis[F] =
     new Redis[F] {
-      override def setUserInRedis(
-          user: String,
+      override def cacheUserInRedis(
+          userRepr: UserRepr,
+          userName: UserName,
           token: JwtToken,
           expiresIn: TokenExpiration
       ): F[Unit] =
-        redis.setEx(token.value, user, expiresIn.value)
+        (
+          redis.setEx(token.show, userRepr.show, expiresIn.value),
+          redis.setEx(userName.show, token.show, expiresIn.value)
+        ).parTupled.void
 
-      override def setUserWithPasswordInRedis(
-          user: UserWithPassword,
+      override def cacheUserWithPasswordInRedis(
+          userWithPassword: UserWithPassword,
           expiresIn: TokenExpiration
       )(
           token: JwtToken
       ): F[Unit] =
-        redis.setEx(user.name.show, token.value, expiresIn.value)
+        redis.setEx(userWithPassword.name.show, token.show, expiresIn.value)
 
       override def getTokenFromRedis(username: UserName): F[Option[JwtToken]] =
         redis.get(username.show).nested.map(JwtToken.apply).value
 
       override def deleteUserInRedis(username: UserName, token: JwtToken): F[Unit] =
-        (redis.del(token.show), redis.del(username.show)).parTupled.void
+        (
+          redis.del(token.show),
+          redis.del(username.show)
+        ).parTupled.void
     }
-
-  // @scala.annotation.nowarn("cat=unused")
-  // private implicit lazy val a: Encoder[User] = {
-  //   implicit lazy val b: Encoder[UserId]   = UserId.deriving
-  //   implicit lazy val c: Encoder[UserName] = UserName.deriving
-
-  //   derevo.circe.magnolia.encoder.instance
-  // }
 }

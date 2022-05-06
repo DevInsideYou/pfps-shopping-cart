@@ -7,43 +7,44 @@ import cats._
 import cats.syntax.all._
 
 trait Boundary[F[_]] {
-  def newUser(username: UserName, password: Password): F[JwtToken]
-  def login(username: UserName, password: Password): F[JwtToken]
-  def logout(token: JwtToken, username: UserName): F[Unit]
+  def newUser(userName: UserName, password: Password): F[JwtToken]
+  def login(userName: UserName, password: Password): F[JwtToken]
+  def logout(token: JwtToken, userName: UserName): F[Unit]
 }
 
 object BoundaryImpl {
   def make[F[_]: MonadThrow](gate: Gate[F]): Boundary[F] =
     new Boundary[F] {
-      override def newUser(username: UserName, password: Password): F[JwtToken] =
-        gate.findUser(username).flatMap {
-          case Some(_) => UserNameInUse(username).raiseError
-          case None    => create(username, password)
+      override def newUser(userName: UserName, password: Password): F[JwtToken] =
+        gate.findUser(userName).flatMap {
+          case Some(_) => UserNameInUse(userName).raiseError
+          case None    => create(userName, password)
         }
 
-      private def create(username: UserName, password: Password): F[JwtToken] =
+      private def create(userName: UserName, password: Password): F[JwtToken] =
         for {
           config <- gate.config
-          userId <- createOrRaiseIfInUse(username, password)
+          userId <- createOrRaiseIfInUse(userName, password)
           token  <- gate.createToken(config)
-          key    <- gate.makeUserKey(User(userId, username))
-          _      <- gate.setUserInRedis(key, token, config.tokenExpiration)
+          user = User(userId, userName)
+          userRepr <- gate.makeUserRepr(user)
+          _        <- gate.cacheUserInRedis(userRepr, userName, token, config.tokenExpiration)
         } yield token
 
-      private def createOrRaiseIfInUse(username: UserName, password: Password): F[UserId] =
+      private def createOrRaiseIfInUse(userName: UserName, password: Password): F[UserId] =
         gate
-          .createUser(username, gate.encrypt(password))
+          .createUser(userName, gate.encrypt(password))
           .flatMap(_.fold(_.raiseError, _.pure))
 
       override def login(
-          username: UserName,
+          userName: UserName,
           password: Password
       ): F[JwtToken] =
         for {
           config <- gate.config
-          token <- gate.findUser(username).flatMap {
+          token <- gate.findUser(userName).flatMap {
             case None =>
-              UserNotFound(username).raiseError[F, JwtToken]
+              UserNotFound(userName).raiseError[F, JwtToken]
 
             case Some(user) if user.password =!= gate.encrypt(password) =>
               InvalidPassword(user.name).raiseError[F, JwtToken]
@@ -62,10 +63,10 @@ object BoundaryImpl {
           case None =>
             gate
               .createToken(config)
-              .flatTap(gate.setUserWithPasswordInRedis(userWithPassword, config.tokenExpiration))
+              .flatTap(gate.cacheUserWithPasswordInRedis(userWithPassword, config.tokenExpiration))
         }
 
-      override def logout(token: JwtToken, username: UserName): F[Unit] =
-        gate.deleteUserInRedis(username, token)
+      override def logout(token: JwtToken, userName: UserName): F[Unit] =
+        gate.deleteUserInRedis(userName, token)
     }
 }

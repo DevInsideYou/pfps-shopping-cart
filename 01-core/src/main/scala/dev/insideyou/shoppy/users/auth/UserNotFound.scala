@@ -5,4 +5,4 @@ package auth
 
 import scala.util.control.NoStackTrace
 
-final case class UserNotFound(username: UserName) extends NoStackTrace
+final case class UserNotFound(userName: UserName) extends NoStackTrace
