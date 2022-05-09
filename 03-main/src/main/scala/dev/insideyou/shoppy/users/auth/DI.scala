@@ -17,7 +17,7 @@ object DI {
       authMiddleware: AuthMiddleware[F, CommonUser]
   ): F[OpenController[F]] =
     for {
-      hasConfig <- HasConfigImpl.make.pure[F]
+      hasConfig <- HasConfigImpl.make.pure
       config    <- hasConfig.config
       crypto    <- CryptoImpl.make(config.passwordSalt)
     } yield {

@@ -46,5 +46,5 @@ package object auth {
 
   @derive(eqv, show)
   @newtype
-  final case class UserRepr(value: NonEmptyString)
+  final case class UserRepr(value: String)
 }
