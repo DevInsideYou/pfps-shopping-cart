@@ -15,13 +15,13 @@ object DI {
       postgres: Resource[F, Session[F]],
       redis: RedisCommands[F, String, String],
       authMiddleware: AuthMiddleware[F, CommonUser]
-  ): F[OpenController[F]] =
+  ): F[Controller.Open[F]] =
     for {
       hasConfig <- HasConfigImpl.make.pure
       config    <- hasConfig.config
       crypto    <- CryptoImpl.make(config.passwordSalt)
     } yield {
-      Controller.make(
+      ControllerImpl.make(
         boundary = BoundaryImpl.make(
           gate = Gate.make(
             hasConfig = hasConfig,

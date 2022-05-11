@@ -9,13 +9,17 @@ import dev.profunktor.redis4cats.RedisCommands
 import pdi.jwt.JwtClaim
 
 object DI {
-  def make[F[_]: Async](
+  // def make[F[_]]: Controller.Middleware[F, CommonUser] =
+  // ControllerImpl.make
+
+  private def boundary[F[_]: Async](
       redis: RedisCommands[F, String, String]
   ): Boundary[F, CommonUser, JwtClaim] =
     BoundaryImpl.make(
       gate = Gate.make(
         redis = RedisImpl.make(redis),
-        reprMaker = ReprMakerImpl.make
+        reprMaker = ReprMakerImpl.make,
+        tokens = null
       )
     )
 }

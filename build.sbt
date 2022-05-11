@@ -263,7 +263,7 @@ lazy val `tokens-jwt-pdi` =
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
         Libraries.catsEffect,
-        Libraries.http4sJwtAuth
+        Libraries.http4sJwtAuth // this is a wrapper around http4s and jwt-scala
       )
     )
 

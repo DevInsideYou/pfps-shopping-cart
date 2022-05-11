@@ -22,11 +22,12 @@ object Security {
       postgres: Resource[F, Session[F]],
       redis: RedisCommands[F, String, String]
   ): F[Security[F]] = {
-
+    // we should have a box for package dev.profunktor.auth
     val adminJwtAuth: AdminJwtAuth =
       AdminJwtAuth(
         JwtAuth
           .hmac(
+            // this needs to come from the gate
             cfg.adminJwtConfig.secretKey.value.secret,
             JwtAlgorithm.HS256
           )

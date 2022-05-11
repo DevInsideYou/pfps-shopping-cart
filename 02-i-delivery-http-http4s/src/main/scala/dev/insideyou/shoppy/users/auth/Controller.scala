@@ -21,12 +21,12 @@ import org.http4s.circe.JsonDecoder
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server._
 
-object Controller {
+object ControllerImpl {
   def make[F[_]: JsonDecoder: MonadThrow](
       boundary: Boundary[F],
       authMiddleware: AuthMiddleware[F, CommonUser]
-  ): OpenController[F] =
-    new OpenController[F] with Http4sDsl[F] {
+  ): Controller.Open[F] =
+    new Controller.Open[F] with Http4sDsl[F] {
       protected implicit lazy val s: Semigroup[HttpRoutes[F]] =
         _ combineK _
 

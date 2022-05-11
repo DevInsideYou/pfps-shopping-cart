@@ -11,6 +11,7 @@ import dev.profunktor._
 import eu.timepit.refined.auto._
 import io.circe.syntax._
 
+// todo parametrize the JwtToken instead of going through a DTO
 object TokensImpl {
   def make[F[_]: GenUUID: JwtExpire: Monad]: Tokens[F] =
     new Tokens[F] {

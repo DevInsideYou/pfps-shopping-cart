@@ -30,6 +30,7 @@ sealed abstract class HttpApi[F[_]: Async] private (
     security: Security[F]
 ) {
   private val adminMiddleware =
+    // DI should create this, instead of exposing the Boundary
     JwtAuthMiddleware[F, AdminUser](security.adminJwtAuth.value, security.adminAuth.findUser)
   private val usersMiddleware =
     JwtAuthMiddleware[F, CommonUser](security.userJwtAuth.value, security.usersAuth.findUser)
