@@ -139,8 +139,8 @@ lazy val `delivery-http-http4s` =
         Libraries.http4sServer,
         Libraries.http4sClient,
         Libraries.http4sCirce,
-        Libraries.http4sJwtAuth,
-        Libraries.log4cats // TODO check if we need this
+        Libraries.http4sJwtAuth, // it would be awesome if we could remove it
+        Libraries.log4cats       // TODO check if we need this
       )
     )
 
@@ -297,7 +297,7 @@ lazy val main =
 lazy val `big-ball-of-mud` = (project in file("modules/core"))
   .enablePlugins(DockerPlugin)
   .enablePlugins(AshScriptPlugin)
-  .dependsOn(main % Cctt)
+  // .dependsOn(main % Cctt)
   .settings(
     name := "shopping-cart-core",
     Docker / packageName := "shopping-cart",

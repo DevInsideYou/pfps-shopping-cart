@@ -5,20 +5,20 @@ package auth
 package middleware
 package admin
 
-import cats.Applicative
+import cats._
 import cats.syntax.all._
 
 object BoundaryImpl {
-  def make[F[_]: Applicative](
-      adminToken: JwtToken, // TODO move to the gate
+  def make[F[_]: Monad, Auth, Token: Eq](
+      adminToken: Token,    // TODO move to the gate
       adminUser: AdminUser, // TODO move to the gate
-      gate: Gate[F]
-  ): Boundary[F, AdminUser] =
-    new Boundary[F, AdminUser] {
-      override lazy val authMiddleware: F[AuthMiddleware[F, AdminUser]] =
-        gate.tokenKeyConfig.map { tokenKeyConfig =>
+      gate: Gate[F, Auth]
+  ): Boundary[F, AdminUser, Auth, Token] =
+    new Boundary[F, AdminUser, Auth, Token] {
+      override lazy val authMiddleware: F[AuthMiddleware[F, AdminUser, Auth, Token]] =
+        gate.tokenKeyConfig.flatMap(gate.auth).map { auth =>
           AuthMiddleware(
-            tokenKeyConfig,
+            auth,
             find = token =>
               (token === adminToken)
                 .guard[Option]
@@ -29,6 +29,7 @@ object BoundaryImpl {
     }
 }
 
-trait Gate[F[_]] {
+trait Gate[F[_], Auth] {
+  def auth(tokenKeyConfig: JwtAccessTokenKeyConfig): F[Auth]
   def tokenKeyConfig: F[JwtAccessTokenKeyConfig]
 }

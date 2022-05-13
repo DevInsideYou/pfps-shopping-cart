@@ -8,14 +8,15 @@ import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
 
 object RedisImpl {
-  def make[F[_]: NonEmptyParallel: Functor](
-      redis: RedisCommands[F, String, String]
-  ): Redis[F] =
-    new Redis[F] {
+  def make[F[_]: NonEmptyParallel: Functor, Token: Show](
+      redis: RedisCommands[F, String, String],
+      stringToToken: String => Token
+  ): Redis[F, Token] =
+    new Redis[F, Token] {
       override def cacheUserInRedis(
           userRepr: UserRepr,
           userName: UserName,
-          token: JwtToken,
+          token: Token,
           expiresIn: TokenExpiration
       ): F[Unit] =
         (
@@ -27,14 +28,14 @@ object RedisImpl {
           userWithPassword: UserWithPassword,
           expiresIn: TokenExpiration
       )(
-          token: JwtToken
+          token: Token
       ): F[Unit] =
         redis.setEx(userWithPassword.name.show, token.show, expiresIn.value)
 
-      override def getTokenFromRedis(username: UserName): F[Option[JwtToken]] =
-        redis.get(username.show).nested.map(JwtToken.apply).value
+      override def getTokenFromRedis(username: UserName): F[Option[Token]] =
+        redis.get(username.show).nested.map(stringToToken).value
 
-      override def deleteUserInRedis(username: UserName, token: JwtToken): F[Unit] =
+      override def deleteUserInRedis(username: UserName, token: Token): F[Unit] =
         (
           redis.del(token.show),
           redis.del(username.show)

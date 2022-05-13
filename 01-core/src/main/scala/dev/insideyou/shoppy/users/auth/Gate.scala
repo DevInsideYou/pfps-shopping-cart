@@ -3,24 +3,24 @@ package shoppy
 package users
 package auth
 
-trait Gate[F[_]]
-    extends HasConfig[F]
+trait Gate[F[_], Token]
+    extends HasConfig[F, Config]
     with Storage[F]
     with Crypto
-    with Tokens[F]
-    with Redis[F]
+    with Tokens[F, Token]
+    with Redis[F, Token]
     with ReprMaker[F]
 
 object Gate {
-  def make[F[_]](
-      hasConfig: HasConfig[F],
+  def make[F[_], Token](
+      hasConfig: HasConfig[F, Config],
       storage: Storage[F],
       crypto: Crypto,
-      tokens: Tokens[F],
-      redis: Redis[F],
+      tokens: Tokens[F, Token],
+      redis: Redis[F, Token],
       reprMaker: ReprMaker[F]
-  ): Gate[F] =
-    new Gate[F] {
+  ): Gate[F, Token] =
+    new Gate[F, Token] {
       override def config: F[Config] =
         hasConfig.config
 
@@ -36,13 +36,13 @@ object Gate {
       override def encrypt(password: Password): EncryptedPassword =
         crypto.encrypt(password)
 
-      override def createToken(config: Config): F[JwtToken] =
+      override def createToken(config: Config): F[Token] =
         tokens.createToken(config)
 
       override def cacheUserInRedis(
           userRepr: UserRepr,
           userName: UserName,
-          token: JwtToken,
+          token: Token,
           expiresIn: TokenExpiration
       ): F[Unit] =
         redis.cacheUserInRedis(userRepr, userName, token, expiresIn)
@@ -51,24 +51,20 @@ object Gate {
           userWithPassword: UserWithPassword,
           expiresIn: TokenExpiration
       )(
-          token: JwtToken
+          token: Token
       ): F[Unit] =
         redis.cacheUserWithPasswordInRedis(userWithPassword, expiresIn)(token)
 
-      override def getTokenFromRedis(userName: UserName): F[Option[JwtToken]] =
+      override def getTokenFromRedis(userName: UserName): F[Option[Token]] =
         redis.getTokenFromRedis(userName)
 
-      override def deleteUserInRedis(userName: UserName, token: JwtToken): F[Unit] =
+      override def deleteUserInRedis(userName: UserName, token: Token): F[Unit] =
         redis.deleteUserInRedis(userName, token)
 
       override def makeUserRepr(user: User): F[UserRepr] =
         reprMaker.makeUserRepr(user)
 
     }
-}
-
-trait HasConfig[F[_]] {
-  def config: F[Config]
 }
 
 trait Storage[F[_]] {
@@ -80,15 +76,15 @@ trait Crypto {
   def encrypt(password: Password): EncryptedPassword
 }
 
-trait Tokens[F[_]] {
-  def createToken(config: Config): F[JwtToken]
+trait Tokens[F[_], Token] {
+  def createToken(config: Config): F[Token]
 }
 
-trait Redis[F[_]] {
+trait Redis[F[_], Token] {
   def cacheUserInRedis(
       userRepr: UserRepr,
       userName: UserName,
-      token: JwtToken,
+      token: Token,
       expiresIn: TokenExpiration
   ): F[Unit]
 
@@ -96,11 +92,11 @@ trait Redis[F[_]] {
       userWithPassword: UserWithPassword,
       expiresIn: TokenExpiration
   )(
-      token: JwtToken
+      token: Token
   ): F[Unit]
 
-  def getTokenFromRedis(userName: UserName): F[Option[JwtToken]]
-  def deleteUserInRedis(userName: UserName, token: JwtToken): F[Unit]
+  def getTokenFromRedis(userName: UserName): F[Option[Token]]
+  def deleteUserInRedis(userName: UserName, token: Token): F[Unit]
 }
 
 trait ReprMaker[F[_]] {

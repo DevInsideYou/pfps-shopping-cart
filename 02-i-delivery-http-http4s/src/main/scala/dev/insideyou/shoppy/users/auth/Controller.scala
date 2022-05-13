@@ -9,7 +9,7 @@ import cats.syntax.all._
 import derevo.circe.magnolia._
 import derevo.derive
 import dev.insideyou.refined._
-import dev.profunktor.auth.AuthHeaders
+import dev.profunktor.auth._
 import eu.timepit.refined.auto._
 import eu.timepit.refined.types.all._
 import io.circe.Encoder
@@ -23,7 +23,7 @@ import org.http4s.server._
 
 object ControllerImpl {
   def make[F[_]: JsonDecoder: MonadThrow](
-      boundary: Boundary[F],
+      boundary: Boundary[F, jwt.JwtToken],
       authMiddleware: AuthMiddleware[F, CommonUser]
   ): Controller.Open[F] =
     new Controller.Open[F] with Http4sDsl[F] {
@@ -50,7 +50,7 @@ object ControllerImpl {
             case ar @ POST -> Root / "logout" as user =>
               AuthHeaders
                 .getBearerToken(ar.req)
-                .traverse_(t => boundary.logout(JwtToken(t.value), user.value.name)) *> NoContent()
+                .traverse_(t => boundary.logout(t, user.value.name)) *> NoContent()
           }
         }
 
@@ -71,7 +71,7 @@ object ControllerImpl {
           }
     }
 
-  implicit val tokenEncoder: Encoder[JwtToken] =
+  private implicit lazy val tokenEncoder: Encoder[jwt.JwtToken] =
     Encoder.forProduct1("access_token")(_.value)
 
   @derive(decoder, encoder)

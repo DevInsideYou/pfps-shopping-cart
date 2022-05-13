@@ -7,24 +7,24 @@ package middleware
 import cats._
 import cats.syntax.all._
 
-final case class AuthMiddleware[F[_], A](
-    tokenKeyConfig: JwtAccessTokenKeyConfig,
-    find: JwtToken => F[Option[A]]
+final case class AuthMiddleware[F[_], A, Auth, Token](
+    auth: Auth,
+    find: Token => F[Option[A]]
 )
 
-trait Boundary[F[_], A] {
-  def authMiddleware: F[AuthMiddleware[F, A]]
+trait Boundary[F[_], A, Auth, Token] {
+  def authMiddleware: F[AuthMiddleware[F, A, Auth, Token]]
 }
 
 object BoundaryImpl {
-  def make[F[_]: Monad](
-      gate: Gate[F]
-  ): Boundary[F, CommonUser] =
-    new Boundary[F, CommonUser] {
-      override lazy val authMiddleware: F[AuthMiddleware[F, CommonUser]] =
-        gate.tokenKeyConfig.map { tokenKeyConfig =>
+  def make[F[_]: Monad, Auth, Token](
+      gate: Gate[F, Auth, Token]
+  ): Boundary[F, CommonUser, Auth, Token] =
+    new Boundary[F, CommonUser, Auth, Token] {
+      override lazy val authMiddleware: F[AuthMiddleware[F, CommonUser, Auth, Token]] =
+        gate.config.map(_.tokenKey).flatMap(gate.auth).map { auth =>
           AuthMiddleware(
-            tokenKeyConfig,
+            auth,
             find = token =>
               for {
                 userString <- gate.getUserStringFromCache(token)

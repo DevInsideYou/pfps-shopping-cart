@@ -13,15 +13,15 @@ import io.circe.syntax._
 
 // todo parametrize the JwtToken instead of going through a DTO
 object TokensImpl {
-  def make[F[_]: GenUUID: JwtExpire: Monad]: Tokens[F] =
-    new Tokens[F] {
-      override def createToken(config: Config): F[JwtToken] =
+  def make[F[_]: GenUUID: JwtExpire: Monad]: Tokens[F, auth.jwt.JwtToken] =
+    new Tokens[F, auth.jwt.JwtToken] {
+      override def createToken(config: Config): F[auth.jwt.JwtToken] =
         for {
           uuid  <- GenUUID[F].make
           claim <- expireClaim(uuid, config.tokenExpiration)
           secretKey = auth.jwt.JwtSecretKey(config.jwtAccessTokenKeyConfig.secret.value)
           token <- auth.jwt.jwtEncode[F](claim, secretKey, pdi.jwt.JwtAlgorithm.HS256)
-        } yield JwtToken(token.value)
+        } yield token
 
       private def expireClaim(uuid: UUID, tokenExpiration: TokenExpiration): F[pdi.jwt.JwtClaim] =
         JwtExpire[F].expiresIn(pdi.jwt.JwtClaim(uuid.asJson.noSpaces), tokenExpiration)

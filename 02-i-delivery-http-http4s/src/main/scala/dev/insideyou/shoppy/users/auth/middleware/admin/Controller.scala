@@ -3,6 +3,7 @@ package shoppy
 package users
 package auth
 package middleware
+package admin
 
 import cats._
 import cats.syntax.all._
@@ -12,10 +13,10 @@ import pdi.jwt.JwtClaim
 
 object ControllerImpl {
   def make[F[_]: MonadThrow](
-      boundary: Boundary[F, CommonUser, jwt.JwtAuth, jwt.JwtToken]
-  ): Controller.Middleware[F, CommonUser] =
-    new Controller.Middleware[F, CommonUser] {
-      override lazy val middleware: F[AuthMiddleware[F, CommonUser]] =
+      boundary: Boundary[F, AdminUser, jwt.JwtAuth, jwt.JwtToken]
+  ): Controller.Middleware[F, AdminUser] =
+    new Controller.Middleware[F, AdminUser] {
+      override lazy val middleware: F[AuthMiddleware[F, AdminUser]] =
         boundary.authMiddleware.map { m =>
           JwtAuthMiddleware(
             jwtAuth = m.auth,

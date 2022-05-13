@@ -40,6 +40,7 @@ package object auth {
   @newtype
   final case class CommonUser(value: User)
 
+  // TODO parametrize over this thing and throw it out
   @derive(show)
   @newtype
   final case class JwtAccessTokenKeyConfig(secret: NonEmptyString)

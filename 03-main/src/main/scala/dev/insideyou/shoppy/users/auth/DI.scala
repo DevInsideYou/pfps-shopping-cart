@@ -9,6 +9,7 @@ import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
 import skunk.Session
 import org.http4s.server.AuthMiddleware
+import dev.profunktor._
 
 object DI {
   def make[F[_]: Async: GenUUID: JwtExpire: NonEmptyParallel](
@@ -28,11 +29,14 @@ object DI {
             storage = StoragePostgresImpl.make(postgres),
             crypto = crypto,
             tokens = TokensImpl.make,
-            redis = RedisImpl.make(redis),
+            redis = RedisImpl.make(redis, stringToToken = auth.jwt.JwtToken),
             reprMaker = ReprMakerImpl.make
           )
         ),
         authMiddleware = authMiddleware
       )
     }
+
+  private implicit val ShowForJwtToken: Show[auth.jwt.JwtToken] =
+    Show.fromToString
 }
