@@ -7,7 +7,7 @@ import io.circe._
 
 object CirceCodecs {
   @scala.annotation.nowarn("cat=unused")
-  implicit lazy val a: Codec[User] = {
+  implicit lazy val codecForUser: Codec[User] = {
     import derevo.circe.magnolia._
 
     implicit val codecForUserId: Codec[UserId] =

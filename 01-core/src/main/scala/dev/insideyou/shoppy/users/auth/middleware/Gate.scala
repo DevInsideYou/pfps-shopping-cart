@@ -27,8 +27,8 @@ object Gate {
       override def convertToCommonUser(userString: String): F[Option[CommonUser]] =
         reprMaker.convertToCommonUser(userString)
 
-      override def auth(tokenKeyConfig: JwtAccessTokenKeyConfig): F[Auth] =
-        tokens.auth(tokenKeyConfig)
+      override def auth(tokenKey: JwtAccessTokenKeyConfig): F[Auth] =
+        tokens.auth(tokenKey)
     }
 }
 
@@ -41,5 +41,5 @@ trait ReprMaker[F[_]] {
 }
 
 trait Tokens[F[_], Auth] {
-  def auth(tokenKeyConfig: JwtAccessTokenKeyConfig): F[Auth]
+  def auth(tokenKey: JwtAccessTokenKeyConfig): F[Auth]
 }

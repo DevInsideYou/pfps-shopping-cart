@@ -9,27 +9,29 @@ import cats._
 import cats.syntax.all._
 
 object BoundaryImpl {
-  def make[F[_]: Monad, Auth, Token: Eq](
-      adminToken: Token,    // TODO move to the gate
-      adminUser: AdminUser, // TODO move to the gate
-      gate: Gate[F, Auth]
+  def make[F[_]: Monad: NonEmptyParallel, Auth, Token: Eq](
+      gate: Gate[F, Auth, Token]
   ): Boundary[F, AdminUser, Auth, Token] =
     new Boundary[F, AdminUser, Auth, Token] {
       override lazy val authMiddleware: F[AuthMiddleware[F, AdminUser, Auth, Token]] =
-        gate.tokenKeyConfig.flatMap(gate.auth).map { auth =>
-          AuthMiddleware(
-            auth,
-            find = token =>
-              (token === adminToken)
-                .guard[Option]
-                .as(adminUser)
-                .pure
-          )
-        }
-    }
-}
+        for {
+          config                  <- gate.config
+          (adminToken, adminAuth) <- tokenAndAuth(config)
+          rawAdminClaim           <- gate.rawClaim(adminToken, adminAuth)
+          content                 <- gate.content(rawAdminClaim)
+        } yield AuthMiddleware(
+          adminAuth,
+          find = token =>
+            (token === adminToken)
+              .guard[Option]
+              .as(adminUser(content))
+              .pure
+        )
 
-trait Gate[F[_], Auth] {
-  def auth(tokenKeyConfig: JwtAccessTokenKeyConfig): F[Auth]
-  def tokenKeyConfig: F[JwtAccessTokenKeyConfig]
+      private def tokenAndAuth(config: Config): F[(Token, Auth)] =
+        (gate.token(config.adminKey), gate.auth(config.tokenKey)).parTupled
+
+      private def adminUser(content: ClaimContent): AdminUser =
+        AdminUser(User(UserId(content.uuid), UserName("admin")))
+    }
 }
