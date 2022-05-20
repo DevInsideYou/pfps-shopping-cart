@@ -15,7 +15,8 @@ object HasConfigImpl {
       override def config: F[Config] =
         env("SC_ACCESS_TOKEN_SECRET_KEY") // TODO we're already loading this, so let's load the entire config at once
           .as[JwtAccessTokenKeyConfig]
-          .map(Config)
+          .secret
+          .map(a => Config(a.value))
           .load[F]
     }
 

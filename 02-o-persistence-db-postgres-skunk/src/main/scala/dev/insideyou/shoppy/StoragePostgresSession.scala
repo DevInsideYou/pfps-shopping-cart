@@ -9,7 +9,7 @@ import natchez.Trace.Implicits.noop
 import skunk._
 
 object StoragePostgresSession {
-  def mkPostgreSqlResource[F[_]: Concurrent: Network: Console: CheckPostgresConnection](
+  def make[F[_]: Concurrent: Network: Console: CheckPostgresConnection](
       c: PostgreSQLConfig
   ): SessionPool[F] =
     Session

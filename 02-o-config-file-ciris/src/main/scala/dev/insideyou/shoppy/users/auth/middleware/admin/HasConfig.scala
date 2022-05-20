@@ -16,9 +16,12 @@ object HasConfigImpl {
     new HasConfig[F, Config] {
       override def config: F[Config] =
         (
-          env("SC_JWT_SECRET_KEY").as[JwtSecretKeyConfig],
-          env("SC_ADMIN_USER_TOKEN").as[AdminUserTokenConfig]
-        ).parMapN(Config).load[F]
+          env("SC_JWT_SECRET_KEY").as[JwtSecretKeyConfig].secret,
+          env("SC_ADMIN_USER_TOKEN").as[AdminUserTokenConfig].secret
+        ).parMapN { (a, b) =>
+            Config(a.value, b.value)
+          }
+          .load[F]
     }
 
   private implicit lazy val a: ConfigDecoder[String, JwtSecretKeyConfig] =

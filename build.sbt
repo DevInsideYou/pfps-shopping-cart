@@ -156,6 +156,7 @@ lazy val `cache-redis-redis4cats` =
         CompilerPlugin.kindProjector,
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
+        Libraries.catsEffect,
         Libraries.redis4catsEffects,
         Libraries.redis4catsLog4cats
       )

@@ -17,9 +17,12 @@ object HasConfigImpl {
       override def config: F[Config] =
         (
           ConfigValue.default(TokenExpiration(30.minutes)),
-          env("SC_ACCESS_TOKEN_SECRET_KEY").as[JwtAccessTokenKeyConfig],
-          env("SC_PASSWORD_SALT").as[PasswordSalt]
-        ).parMapN(Config).load[F]
+          env("SC_ACCESS_TOKEN_SECRET_KEY").as[JwtAccessTokenKeyConfig].secret,
+          env("SC_PASSWORD_SALT").as[PasswordSalt].secret
+        ).parMapN { (a, b, c) =>
+            Config(a, b.value, c.value)
+          }
+          .load[F]
     }
 
   private implicit lazy val a: ConfigDecoder[String, JwtAccessTokenKeyConfig] =
