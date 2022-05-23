@@ -8,7 +8,7 @@ import fs2.io.net.Network
 import natchez.Trace.Implicits.noop
 import skunk._
 
-object StoragePostgresSession {
+object PostgresSession {
   def make[F[_]: Concurrent: Network: Console: CheckPostgresConnection](
       c: PostgreSQLConfig
   ): SessionPool[F] =

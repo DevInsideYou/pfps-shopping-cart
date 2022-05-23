@@ -4,6 +4,7 @@ package shoppy
 import scala.concurrent.duration._
 
 import cats.effect._
+import cats.syntax.all._
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.server.Router
@@ -11,9 +12,12 @@ import org.http4s.server.middleware._
 
 object HttpApp {
   def make[F[_]: Async](
-      openRoutes: HttpRoutes[F],
-      adminRoutes: HttpRoutes[F]
+      openRoutesList: List[HttpRoutes[F]],
+      adminRoutesList: List[HttpRoutes[F]]
   ): HttpApp[F] = {
+    val openRoutes  = openRoutesList.reduceLeft(_ <+> _)
+    val adminRoutes = adminRoutesList.reduceLeft(_ <+> _)
+
     lazy val routes: HttpRoutes[F] =
       Router(
         version.v1            -> openRoutes,
