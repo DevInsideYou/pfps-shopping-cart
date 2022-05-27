@@ -15,7 +15,7 @@ object StoragePostgresImpl {
       postgres: Resource[F, Session[F]]
   ): Storage[F] =
     new Storage[F] {
-      import UserSQL._
+      import SQL._
 
       override def findUser(username: UserName): F[Option[UserWithPassword]] =
         postgres.use { session =>
@@ -46,9 +46,13 @@ object StoragePostgresImpl {
         }
     }
 
-  private object UserSQL {
-    val userId: Codec[UserId]     = uuid.imap[UserId](UserId(_))(_.value)
-    val userName: Codec[UserName] = varchar.imap[UserName](UserName(_))(_.value)
+  private object SQL {
+    val userId: Codec[UserId] =
+      uuid.imap[UserId](UserId(_))(_.value)
+
+    val userName: Codec[UserName] =
+      varchar.imap[UserName](UserName(_))(_.value)
+
     val encPassword: Codec[EncryptedPassword] =
       varchar.imap[EncryptedPassword](EncryptedPassword(_))(_.value)
 

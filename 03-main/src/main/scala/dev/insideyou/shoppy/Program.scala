@@ -9,6 +9,7 @@ import dev.profunktor.redis4cats.effect._
 import cats.effect.std.Supervisor
 
 object Program {
+  @scala.annotation.nowarn("cat=unused")
   def make[F[+_]: NonEmptyParallel: Async: MkRedis: std.Console: Logger]: F[Unit] =
     AppEnvironmentConfigLoader.load[F].flatMap { appEnvironment =>
       (RedisSessionLoader.load[F](appEnvironment), PostgresSessionLoader.load[F]).parTupled
@@ -21,14 +22,19 @@ object Program {
                     .flatMap { httpServerConfig =>
                       for {
                         implicit0(d: users.auth.JwtExpire[F]) <- users.auth.JwtExpire.make
-                        _                                     <- users.auth.middleware.admin.DI.make.middleware
+                        adminAuthMiddleware                   <- users.auth.middleware.admin.DI.make.middleware
                         usersAuthMiddleware                   <- users.auth.middleware.DI.make(redis).middleware
                         usersAuth                             <- users.auth.DI.make(postgres, redis, usersAuthMiddleware)
+                        brandingController                    <- branding.DI.make(postgres).pure
+                        brandingAdmin                         <- branding.admin.DI.make(postgres, adminAuthMiddleware).pure
                         httpApp = HttpApp.make(
                           List(
-                            usersAuth.openRoutes
+                            usersAuth.openRoutes,
+                            brandingController.openRoutes
                           ),
-                          List.empty
+                          List(
+                            brandingAdmin.adminRoutes
+                          )
                         )
                       } yield (httpServerConfig, httpApp)
                     }
