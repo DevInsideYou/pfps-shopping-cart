@@ -1,7 +1,5 @@
 package dev.insideyou
 package shoppy
-package users
-package auth
 
 import derevo.cats._
 import derevo.derive

@@ -14,10 +14,6 @@ import java.util.UUID
 package object admin {
   @derive(show)
   @newtype
-  case class AdminUser(value: User)
-
-  @derive(show)
-  @newtype
   case class AdminUserTokenConfig(secret: NonEmptyString)
 
   @derive(show)

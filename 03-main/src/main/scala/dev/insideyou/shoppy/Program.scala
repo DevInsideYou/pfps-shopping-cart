@@ -27,13 +27,19 @@ object Program {
                         usersAuth                             <- users.auth.DI.make(postgres, redis, usersAuthMiddleware)
                         brandingController                    <- branding.DI.make(postgres).pure
                         brandingAdmin                         <- branding.admin.DI.make(postgres, adminAuthMiddleware).pure
+                        categoriesController                  <- categories.DI.make(postgres).pure
+                        categoriesAdmin <- categories.admin.DI
+                          .make(postgres, adminAuthMiddleware)
+                          .pure
                         httpApp = HttpApp.make(
                           List(
                             usersAuth.openRoutes,
-                            brandingController.openRoutes
+                            brandingController.openRoutes,
+                            categoriesController.openRoutes
                           ),
                           List(
-                            brandingAdmin.adminRoutes
+                            brandingAdmin.adminRoutes,
+                            categoriesAdmin.adminRoutes
                           )
                         )
                       } yield (httpServerConfig, httpApp)

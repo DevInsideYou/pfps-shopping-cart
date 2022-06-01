@@ -1,6 +1,6 @@
 package dev.insideyou
 package shoppy
-package branding
+package categories
 package admin
 
 import cats._
@@ -24,13 +24,13 @@ object ControllerImpl {
     new Controller.Admin[F] with Http4sDsl[F] {
       override def adminRoutes: HttpRoutes[F] =
         Router {
-          "/brands" ->
+          "/categories" ->
             authMiddleware {
               AuthedRoutes.of[AdminUser, F] {
                 case ar @ POST -> Root as _ =>
-                  ar.req.decodeR[package_object_2.BrandParam] { bp =>
+                  ar.req.decodeR[CategoryParam] { bp =>
                     boundary.create(bp.toDomain).flatMap { id =>
-                      Created(JsonObject.singleton("brand_id", id.asJson))
+                      Created(JsonObject.singleton("category_id", id.asJson))
                     }
                   }
               }

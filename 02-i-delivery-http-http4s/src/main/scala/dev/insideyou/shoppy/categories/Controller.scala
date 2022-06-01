@@ -1,6 +1,6 @@
 package dev.insideyou
 package shoppy
-package branding
+package categories
 
 import cats.Monad
 import org.http4s._
@@ -17,7 +17,7 @@ object ControllerImpl {
     new Controller.Open[F] with Http4sDsl[F] {
       override lazy val openRoutes: HttpRoutes[F] =
         Router {
-          "/brands" -> HttpRoutes.of[F] {
+          "/categories" -> HttpRoutes.of[F] {
             case GET -> Root =>
               Ok(boundary.findAll)
           }

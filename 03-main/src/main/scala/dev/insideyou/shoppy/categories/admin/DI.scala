@@ -1,6 +1,6 @@
 package dev.insideyou
 package shoppy
-package branding
+package categories
 package admin
 
 import cats.effect._

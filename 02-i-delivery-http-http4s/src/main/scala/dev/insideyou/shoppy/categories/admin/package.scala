@@ -1,6 +1,6 @@
 package dev.insideyou
 package shoppy
-package branding
+package categories
 
 import derevo.cats._
 import derevo.circe.magnolia.decoder
@@ -15,7 +15,7 @@ import io.estatico.newtype.macros.newtype
 package object admin {
   @derive(decoder, queryParam, show)
   @newtype
-  final case class BrandParam(name: NonEmptyString) {
-    def toDomain: BrandName = BrandName(name.toLowerCase.capitalize)
+  final case class CategoryParam(name: NonEmptyString) {
+    def toDomain: CategoryName = CategoryName(name.toLowerCase.capitalize)
   }
 }
