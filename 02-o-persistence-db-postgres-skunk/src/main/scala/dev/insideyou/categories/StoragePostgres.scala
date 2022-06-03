@@ -12,13 +12,11 @@ object StoragePostgresImpl {
       postgres: Resource[F, Session[F]]
   ): Storage[F] =
     new Storage[F] {
-      import SQL._
-
       override def findAllCategories: F[List[Category]] =
-        postgres.use(_.execute(selectAll))
+        postgres.use(_.execute(SQL.selectAll))
     }
 
-  private[categories] object SQL {
+  object SQL {
     val categoryId: Codec[CategoryId] =
       uuid.imap[CategoryId](CategoryId(_))(_.value)
 

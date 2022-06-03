@@ -22,7 +22,7 @@ object ControllerImpl {
       authMiddleware: AuthMiddleware[F, AdminUser]
   ): Controller.Admin[F] =
     new Controller.Admin[F] with Http4sDsl[F] {
-      override def adminRoutes: HttpRoutes[F] =
+      override lazy val routes: HttpRoutes[F] =
         Router {
           "/brands" ->
             authMiddleware {

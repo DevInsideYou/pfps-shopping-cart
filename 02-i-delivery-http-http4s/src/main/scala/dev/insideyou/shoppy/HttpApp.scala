@@ -12,11 +12,18 @@ import org.http4s.server.middleware._
 
 object HttpApp {
   def make[F[_]: Async](
-      openRoutesList: List[HttpRoutes[F]],
-      adminRoutesList: List[HttpRoutes[F]]
+      controllers: List[Controller[F]]
   ): HttpApp[F] = {
-    val openRoutes  = openRoutesList.reduceLeft(_ <+> _)
-    val adminRoutes = adminRoutesList.reduceLeft(_ <+> _)
+    val (openRoutes, adminRoutes) =
+      controllers
+        .foldLeft((Vector.empty[HttpRoutes[F]], Vector.empty[HttpRoutes[F]])) {
+          case ((open, admin), c: Controller.Open[F]) =>
+            open.appended(c.routes) -> admin
+
+          case ((open, admin), c: Controller.Admin[F]) =>
+            open -> admin.appended(c.routes)
+        }
+        .bimap(_.reduceLeft(_ combineK _), _.reduceLeft(_ combineK _))
 
     lazy val routes: HttpRoutes[F] =
       Router(

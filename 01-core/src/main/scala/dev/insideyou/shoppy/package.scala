@@ -9,6 +9,10 @@ import io.estatico.newtype.macros.newtype
 package object shoppy {
   @derive(show)
   @newtype
+  final case class CommonUser(value: User)
+
+  @derive(show)
+  @newtype
   case class AdminUser(value: User)
 
   @derive(eqv, show, uuid)

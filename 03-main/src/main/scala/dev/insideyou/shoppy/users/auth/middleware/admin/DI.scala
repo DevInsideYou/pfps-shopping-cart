@@ -10,8 +10,8 @@ import cats.effect._
 import dev.profunktor.auth.jwt
 
 object DI {
-  def make[F[_]: Async: NonEmptyParallel]: Controller.Middleware[F, AdminUser] =
-    ControllerImpl.make(
+  def make[F[_]: Async: NonEmptyParallel]: Middleware[F, AdminUser] =
+    MiddlewareImpl.make(
       boundary = BoundaryImpl.make(
         gate = Gate.make(
           hasConfig = HasConfigImpl.make,

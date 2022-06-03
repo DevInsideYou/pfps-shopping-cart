@@ -18,7 +18,7 @@ object ControllerImpl {
       object BrandQueryParam
           extends OptionalQueryParamDecoderMatcher[branding.package_object_2.BrandParam]("brand")
 
-      override lazy val openRoutes: HttpRoutes[F] =
+      override lazy val routes: HttpRoutes[F] =
         Router {
           "/items" -> HttpRoutes.of[F] {
             case GET -> Root :? BrandQueryParam(brand) =>

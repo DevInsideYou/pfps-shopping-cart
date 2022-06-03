@@ -12,8 +12,8 @@ import dev.profunktor.redis4cats.RedisCommands
 object DI {
   def make[F[_]: Async](
       redis: RedisCommands[F, String, String]
-  ): Controller.Middleware[F, CommonUser] =
-    ControllerImpl.make(
+  ): Middleware[F, CommonUser] =
+    MiddlewareImpl.make(
       boundary = BoundaryImpl.make(
         gate = Gate.make(
           hasConfig = HasConfigImpl.make,

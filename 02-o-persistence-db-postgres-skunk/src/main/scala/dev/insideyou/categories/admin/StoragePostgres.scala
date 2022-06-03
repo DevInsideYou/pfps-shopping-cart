@@ -13,11 +13,9 @@ object StoragePostgresImpl {
       postgres: Resource[F, Session[F]]
   ): Storage[F] =
     new Storage[F] {
-      import SQL._
-
       override def createCategory(name: CategoryName): F[CategoryId] =
         postgres.use { session =>
-          session.prepare(insertCategory).use { cmd =>
+          session.prepare(SQL.insertCategory).use { cmd =>
             ID.make[F, CategoryId].flatMap { id =>
               cmd.execute(Category(id, name)).as(id)
             }

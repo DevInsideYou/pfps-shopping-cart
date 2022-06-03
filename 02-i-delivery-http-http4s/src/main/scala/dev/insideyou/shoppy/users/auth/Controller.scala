@@ -30,12 +30,10 @@ object ControllerImpl {
       protected implicit lazy val s: Semigroup[HttpRoutes[F]] =
         _ combineK _
 
-      override lazy val openRoutes: HttpRoutes[F] =
-        Router(
-          "/auth" -> NonEmptyList.of(routes, authedRoutes).reduce
-        )
+      override lazy val routes: HttpRoutes[F] =
+        Router("/auth" -> NonEmptyList.of(notAuthedRoutes, authedRoutes).reduce)
 
-      private lazy val routes: HttpRoutes[F] =
+      private lazy val notAuthedRoutes: HttpRoutes[F] =
         HttpRoutes.of[F] {
           case req @ POST -> Root / "users" =>
             req.decodeR[CreateUser](users)

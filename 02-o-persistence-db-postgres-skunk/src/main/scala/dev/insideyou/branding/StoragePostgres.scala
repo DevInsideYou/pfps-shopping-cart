@@ -12,13 +12,11 @@ object StoragePostgresImpl {
       postgres: Resource[F, Session[F]]
   ): Storage[F] =
     new Storage[F] {
-      import SQL._
-
       override def findAllBrands: F[List[Brand]] =
-        postgres.use(_.execute(selectAll))
+        postgres.use(_.execute(SQL.selectAll))
     }
 
-  private[branding] object SQL {
+  object SQL {
     val brandId: Codec[BrandId] =
       uuid.imap[BrandId](BrandId(_))(_.value)
 

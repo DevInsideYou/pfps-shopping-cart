@@ -64,7 +64,6 @@ lazy val core =
     .in(file("01-core"))
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -86,7 +85,6 @@ lazy val `cats-effect-util` =
     .in(file("02-c-cats-effect-util"))
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -101,7 +99,6 @@ lazy val `json-circe-util` =
     .in(file("02-c-json-circe-util"))
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -126,7 +123,6 @@ lazy val `delivery-http-http4s` =
     )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -150,7 +146,6 @@ lazy val `cache-redis-redis4cats` =
     .dependsOn(core % Cctt)
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -168,7 +163,6 @@ lazy val `config-file-ciris` =
     .dependsOn(core % Cctt)
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -187,7 +181,6 @@ lazy val `cryptography-jsr105-api` =
     .dependsOn(core % Cctt)
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -209,7 +202,6 @@ lazy val `persistence-db-postgres-skunk` =
     )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -236,7 +228,6 @@ lazy val `reprmaker-circe` =
     )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -258,7 +249,6 @@ lazy val `tokens-jwt-pdi` =
     )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -287,7 +277,6 @@ lazy val main =
     )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      scalafmtOnCompile := true,
       resolvers += Resolver.sonatypeRepo("snapshots"),
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
@@ -304,7 +293,6 @@ lazy val `big-ball-of-mud` = (project in file("modules/core"))
     name := "shopping-cart-core",
     Docker / packageName := "shopping-cart",
     scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-    scalafmtOnCompile := true,
     resolvers += Resolver.sonatypeRepo("snapshots"),
     Defaults.itSettings,
     scalafixCommonSettings,

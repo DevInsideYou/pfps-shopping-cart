@@ -15,11 +15,9 @@ object StoragePostgresImpl {
       postgres: Resource[F, Session[F]]
   ): Storage[F] =
     new Storage[F] {
-      import SQL._
-
       override def findUser(username: UserName): F[Option[UserWithPassword]] =
         postgres.use { session =>
-          session.prepare(selectUser).use { q =>
+          session.prepare(SQL.selectUser).use { q =>
             q.option(username).map {
               case Some(u ~ p) => UserWithPassword(u.id, u.name, p).some
               case _           => none[UserWithPassword]
@@ -32,10 +30,10 @@ object StoragePostgresImpl {
           password: EncryptedPassword
       ): F[Either[UserNameInUse, UserId]] =
         postgres.use { session =>
-          session.prepare(insertUser).use { cmd =>
+          session.prepare(SQL.insertUser).use { cmd =>
             ID.make[F, UserId].flatMap { id =>
               cmd
-                .execute(User(id, username) ~ password)
+                .execute(SQL.User(id, username) ~ password)
                 .as(id.asRight[UserNameInUse])
                 .recoverWith {
                   case SqlState.UniqueViolation(_) =>

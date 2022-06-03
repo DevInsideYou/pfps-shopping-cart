@@ -15,7 +15,7 @@ object ControllerImpl {
       boundary: Boundary[F]
   ): Controller.Open[F] =
     new Controller.Open[F] with Http4sDsl[F] {
-      override lazy val openRoutes: HttpRoutes[F] =
+      override lazy val routes: HttpRoutes[F] =
         Router {
           "/brands" -> HttpRoutes.of[F] {
             case GET -> Root =>
