@@ -33,7 +33,7 @@ object ControllerImpl {
   def make[F[_]: JsonDecoder: MonadThrow](
       boundary: Boundary[F],
       authMiddleware: AuthMiddleware[F, AdminUser]
-  ): Controller.Admin[F] =
+  ): Controller[F] =
     new Controller.Admin[F] with Http4sDsl[F] {
       override lazy val routes: HttpRoutes[F] =
         Router {

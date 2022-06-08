@@ -13,7 +13,7 @@ import CirceCodecs._
 object ControllerImpl {
   def make[F[_]: Monad](
       boundary: Boundary[F]
-  ): Controller.Open[F] =
+  ): Controller[F] =
     new Controller.Open[F] with Http4sDsl[F] {
       override lazy val routes: HttpRoutes[F] =
         Router {

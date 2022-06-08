@@ -52,12 +52,13 @@ object Program {
       usersAuthMiddleware: AuthMiddleware[F, CommonUser]
   ): F[org.http4s.HttpApp[F]] =
     List(
-      users.auth.DI.make(postgres, redis, usersAuthMiddleware).widen,
-      branding.DI.make(postgres).pure.widen,
-      branding.admin.DI.make(postgres, adminAuthMiddleware).pure.widen,
-      categories.DI.make(postgres).pure.widen,
-      categories.admin.DI.make(postgres, adminAuthMiddleware).pure.widen,
-      items.DI.make(postgres).pure.widen,
-      items.admin.DI.make(postgres, adminAuthMiddleware).pure.widen
+      branding.DI.make(postgres),
+      branding.admin.DI.make(postgres, adminAuthMiddleware),
+      categories.DI.make(postgres),
+      categories.admin.DI.make(postgres, adminAuthMiddleware),
+      items.DI.make(postgres),
+      items.admin.DI.make(postgres, adminAuthMiddleware),
+      ordering.DI.make(postgres, usersAuthMiddleware),
+      users.auth.DI.make(postgres, redis, usersAuthMiddleware)
     ).sequence.map(HttpApp.make[F])
 }

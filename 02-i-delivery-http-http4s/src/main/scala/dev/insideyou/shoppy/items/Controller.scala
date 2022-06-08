@@ -13,7 +13,7 @@ import org.http4s.server.Router
 import CirceCodecs._
 
 object ControllerImpl {
-  def make[F[_]: Monad](boundary: Boundary[F]): Controller.Open[F] =
+  def make[F[_]: Monad](boundary: Boundary[F]): Controller[F] =
     new Controller.Open[F] with Http4sDsl[F] {
       object BrandQueryParam
           extends OptionalQueryParamDecoderMatcher[branding.package_object_2.BrandParam]("brand")

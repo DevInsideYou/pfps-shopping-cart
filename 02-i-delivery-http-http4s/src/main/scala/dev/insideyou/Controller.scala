@@ -7,11 +7,6 @@ sealed trait Controller[F[_]] {
 }
 
 object Controller {
-  trait Open[F[_]] extends Controller[F] {
-    def routes: HttpRoutes[F]
-  }
-
-  trait Admin[F[_]] extends Controller[F] {
-    def routes: HttpRoutes[F]
-  }
+  trait Open[F[_]]  extends Controller[F]
+  trait Admin[F[_]] extends Controller[F]
 }

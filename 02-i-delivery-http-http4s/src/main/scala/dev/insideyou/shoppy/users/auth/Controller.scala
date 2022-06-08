@@ -25,7 +25,7 @@ object ControllerImpl {
   def make[F[_]: JsonDecoder: MonadThrow](
       boundary: Boundary[F, jwt.JwtToken],
       authMiddleware: AuthMiddleware[F, CommonUser]
-  ): Controller.Open[F] =
+  ): Controller[F] =
     new Controller.Open[F] with Http4sDsl[F] {
       protected implicit lazy val s: Semigroup[HttpRoutes[F]] =
         _ combineK _

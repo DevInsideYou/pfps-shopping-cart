@@ -19,6 +19,7 @@ package object items {
   @derive(eqv, show)
   @newtype
   final case class ItemDescription(value: String)
+
   @derive(eqv, show)
   @newtype
   final case class Quantity(value: Int)

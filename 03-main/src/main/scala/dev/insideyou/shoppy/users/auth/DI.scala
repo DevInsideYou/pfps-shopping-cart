@@ -16,7 +16,7 @@ object DI {
       postgres: Resource[F, Session[F]],
       redis: RedisCommands[F, String, String],
       authMiddleware: AuthMiddleware[F, CommonUser]
-  ): F[Controller.Open[F]] =
+  ): F[Controller[F]] =
     for {
       hasConfig <- HasConfigImpl.make.pure
       config    <- hasConfig.config

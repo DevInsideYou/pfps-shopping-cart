@@ -1,19 +1,17 @@
 package dev.insideyou
 package shoppy
-package items
-package admin
+package ordering
 
-import cats.syntax.all._
 import cats.effect._
-import org.http4s.circe.JsonDecoder
+import cats.syntax.all._
 import org.http4s.server.AuthMiddleware
 import skunk.Session
 
 object DI {
-  def make[F[_]: MonadCancelThrow: GenUUID: JsonDecoder](
+  def make[F[_]: MonadCancelThrow](
       postgres: Resource[F, Session[F]],
-      authMiddleware: AuthMiddleware[F, AdminUser]
-  ): F[Controller[F]] =
+      authMiddleware: AuthMiddleware[F, CommonUser]
+  )(implicit C: fs2.Compiler[F, F]): F[Controller[F]] =
     ControllerImpl
       .make(
         boundary = BoundaryImpl.make(
