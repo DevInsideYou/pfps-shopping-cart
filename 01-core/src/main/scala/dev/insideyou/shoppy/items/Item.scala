@@ -15,10 +15,7 @@ final case class Item(
     price: Money,
     brand: branding.Brand,
     category: categories.Category
-) {
-  def cart(q: Quantity): CartItem =
-    CartItem(this, q)
-}
+)
 
 object Item {
   implicit val currencyEq: Eq[Currency] =
@@ -27,9 +24,4 @@ object Item {
   implicit val moneyEq: Eq[Money] = Eq.and(Eq.by(_.amount), Eq.by(_.currency))
 
   implicit val moneyShow: Show[Money] = Show.fromToString
-}
-
-@derive(eqv, show)
-final case class CartItem(item: Item, quantity: Quantity) {
-  def subTotal: Money = USD(item.price.amount * quantity.value)
 }

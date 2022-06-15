@@ -5,7 +5,7 @@ package shopping_cart
 import cats._
 import cats.syntax.all._
 import io.circe._
-import io.circe.generic.semiauto._
+import io.circe.magnolia.derivation.encoder.semiauto._
 import org.http4s._
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.circe._
@@ -50,10 +50,10 @@ object ControllerImpl {
 
   @scala.annotation.nowarn("cat=unused")
   private implicit lazy val encoderForCartItem: Encoder[CartItem] =
-    deriveEncoder
+    deriveMagnoliaEncoder
 
   private implicit lazy val encoderForCartTotal: Encoder[CartTotal] =
-    deriveEncoder
+    deriveMagnoliaEncoder
 
   private implicit val jsonDecoder: Decoder[Cart] =
     Decoder.forProduct1("items")(Cart.apply)

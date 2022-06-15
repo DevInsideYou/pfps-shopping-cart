@@ -59,6 +59,7 @@ object Program {
       items.DI.make(postgres),
       items.admin.DI.make(postgres, adminAuthMiddleware),
       ordering.DI.make(postgres, usersAuthMiddleware),
+      shopping_cart.DI.make[F](postgres, redis, usersAuthMiddleware),
       users.auth.DI.make(postgres, redis, usersAuthMiddleware)
     ).sequence.map(HttpApp.make[F])
 }

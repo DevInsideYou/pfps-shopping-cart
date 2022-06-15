@@ -19,7 +19,6 @@ lazy val root = (project in file("."))
   .aggregate(
     core,
     // c
-    `cats-effect-util`,
     `json-circe-util`,
     // i
     `delivery-http-http4s`,
@@ -77,20 +76,6 @@ lazy val core =
         Libraries.refinedCore,
         Libraries.refinedCats,
         Libraries.squants
-      )
-    )
-
-lazy val `cats-effect-util` =
-  project
-    .in(file("02-c-cats-effect-util"))
-    .settings(
-      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      resolvers += Resolver.sonatypeRepo("snapshots"),
-      libraryDependencies ++= Seq(
-        CompilerPlugin.kindProjector,
-        CompilerPlugin.betterMonadicFor,
-        CompilerPlugin.semanticDB,
-        Libraries.catsEffect
       )
     )
 
@@ -196,8 +181,7 @@ lazy val `persistence-db-postgres-skunk` =
     .in(file("02-o-persistence-db-postgres-skunk"))
     .dependsOn(
       Seq(
-        core,
-        `cats-effect-util`
+        core
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -243,7 +227,6 @@ lazy val `tokens-jwt-pdi` =
     .dependsOn(
       Seq(
         core,
-        `cats-effect-util`,
         `json-circe-util`
       ).map(_ % Cctt): _*
     )

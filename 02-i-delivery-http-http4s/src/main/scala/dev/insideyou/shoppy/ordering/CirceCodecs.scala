@@ -3,7 +3,7 @@ package shoppy
 package ordering
 
 import io.circe._
-import io.circe.generic.semiauto._
+import io.circe.magnolia.derivation.encoder.semiauto._
 
 import items.CirceCodecs._
 
@@ -15,5 +15,5 @@ object CirceCodecs {
     PaymentId.deriving
 
   implicit lazy val orderEncoder: Encoder[Order] =
-    deriveEncoder
+    deriveMagnoliaEncoder
 }
