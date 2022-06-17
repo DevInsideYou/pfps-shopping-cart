@@ -13,7 +13,7 @@ import io.circe.syntax._
 
 // todo parametrize the JwtToken instead of going through a DTO
 object TokensImpl {
-  def make[F[_]: GenUUID: JwtExpire: Monad]: Tokens[F, auth.jwt.JwtToken] =
+  def make[F[_]: GenUUID: Monad](jwtExpire: JwtExpire[F]): Tokens[F, auth.jwt.JwtToken] =
     new Tokens[F, auth.jwt.JwtToken] {
       override def createToken(config: Config): F[auth.jwt.JwtToken] =
         for {
@@ -24,6 +24,6 @@ object TokensImpl {
         } yield token
 
       private def expireClaim(uuid: UUID, tokenExpiration: TokenExpiration): F[pdi.jwt.JwtClaim] =
-        JwtExpire[F].expiresIn(pdi.jwt.JwtClaim(uuid.asJson.noSpaces), tokenExpiration)
+        jwtExpire.expiresIn(pdi.jwt.JwtClaim(uuid.asJson.noSpaces), tokenExpiration)
     }
 }

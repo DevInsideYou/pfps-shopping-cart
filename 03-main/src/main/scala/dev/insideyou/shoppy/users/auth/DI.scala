@@ -12,10 +12,11 @@ import org.http4s.server.AuthMiddleware
 import dev.profunktor._
 
 object DI {
-  def make[F[_]: Async: GenUUID: JwtExpire: NonEmptyParallel](
+  def make[F[_]: Async: GenUUID: NonEmptyParallel](
       postgres: Resource[F, Session[F]],
       redis: RedisCommands[F, String, String],
-      authMiddleware: AuthMiddleware[F, CommonUser]
+      authMiddleware: AuthMiddleware[F, CommonUser],
+      jwtExpire: JwtExpire[F]
   ): F[Controller[F]] =
     for {
       hasConfig <- HasConfigImpl.make.pure
@@ -28,7 +29,7 @@ object DI {
             hasConfig = hasConfig,
             storage = StoragePostgresImpl.make(postgres),
             crypto = crypto,
-            tokens = TokensImpl.make,
+            tokens = TokensImpl.make(jwtExpire),
             redis = RedisImpl.make(redis, stringToToken = auth.jwt.JwtToken),
             reprMaker = ReprMakerImpl.make
           )

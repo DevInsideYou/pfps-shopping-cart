@@ -13,7 +13,7 @@ trait HttpServer[F[_]] {
 }
 
 object HttpServer {
-  def make[F[_]: Async: Logger](cfg: HttpServerConfig, httpApp: HttpApp[F]): HttpServer[F] =
+  def make[F[_]: Async: Logger](cfg: HttpServerConfig)(httpApp: HttpApp[F]): HttpServer[F] =
     new HttpServer[F] {
       def serve: Resource[F, Server] =
         EmberServerBuilder
