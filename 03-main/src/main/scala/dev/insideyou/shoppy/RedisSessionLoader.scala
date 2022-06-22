@@ -7,13 +7,14 @@ import cats.effect._
 import eu.timepit.refined.auto._
 import dev.profunktor.redis4cats.RedisCommands
 import dev.profunktor.redis4cats.effect.MkRedis
-import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats
 
 object RedisSessionLoader {
-  def load[F[_]: MonadThrow: MkRedis: Logger](
+  def load[F[_]: MonadThrow: MkRedis: log4cats.Logger](
       appEnvironment: AppEnvironment
   ): F[Resource[F, RedisCommands[F, String, String]]] = {
-    implicit val checkConnection = CheckRedisConnection.make[F]
+    implicit val logger: Logger[F] = LoggerImpl.make(implicitly, "RedisSessionLoader")
+    implicit val checkConnection   = CheckRedisConnection.make[F]
 
     loadConfig(appEnvironment).map(RedisSession.make[F])
   }

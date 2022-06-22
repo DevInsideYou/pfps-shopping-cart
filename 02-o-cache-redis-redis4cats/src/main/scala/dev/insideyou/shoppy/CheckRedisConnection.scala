@@ -4,7 +4,6 @@ package shoppy
 import cats._
 import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
-import org.typelevel.log4cats.Logger
 
 trait CheckRedisConnection[F[_]] {
   def checkRedisConnection(redis: RedisCommands[F, String, String]): F[Unit]

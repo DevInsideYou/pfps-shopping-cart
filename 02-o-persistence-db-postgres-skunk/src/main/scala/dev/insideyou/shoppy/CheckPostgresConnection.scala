@@ -4,7 +4,6 @@ package shoppy
 import cats.effect._
 import cats.syntax.all._
 import eu.timepit.refined.auto._
-import org.typelevel.log4cats.Logger
 import skunk._
 import skunk.codec.text._
 import skunk.implicits._

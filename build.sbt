@@ -69,12 +69,12 @@ lazy val core =
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
         Libraries.cats,
-        Libraries.derevoCore,
         Libraries.derevoCats,
+        Libraries.derevoCore,
         Libraries.monocleCore,
         Libraries.newtype,
-        Libraries.refinedCore,
         Libraries.refinedCats,
+        Libraries.refinedCore,
         Libraries.squants
       )
     )
@@ -120,8 +120,7 @@ lazy val `delivery-http-http4s` =
         Libraries.http4sServer,
         Libraries.http4sClient,
         Libraries.http4sCirce,
-        Libraries.http4sJwtAuth, // it would be awesome if we could remove it
-        Libraries.log4cats       // TODO check if we need this
+        Libraries.http4sJwtAuth // it would be awesome if we could remove it
       )
     )
 
@@ -194,8 +193,6 @@ lazy val `persistence-db-postgres-skunk` =
         Libraries.catsEffect,
         Libraries.catsRetry,
         Libraries.fs2,
-        Libraries.log4cats, // TODO, ensure that we actually need it
-        Libraries.logback % Runtime, // TODO, ensure that we actually need it
         Libraries.skunkCore,
         Libraries.skunkCirce
       )
@@ -264,7 +261,9 @@ lazy val main =
       libraryDependencies ++= Seq(
         CompilerPlugin.kindProjector,
         CompilerPlugin.betterMonadicFor,
-        CompilerPlugin.semanticDB
+        CompilerPlugin.semanticDB,
+        Libraries.log4cats,
+        Libraries.logback % Runtime
       )
     )
 
