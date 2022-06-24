@@ -1,3 +1,4 @@
+// TODO remove dependencies that we don't need
 import Dependencies._
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
@@ -20,11 +21,14 @@ lazy val root = (project in file("."))
     core,
     // c
     `json-circe-util`,
+    `retries-cats-retry`,
     // i
     `delivery-http-http4s`,
     // o
     `cache-redis-redis4cats`,
+    `client-http-http4s`,
     `config-file-ciris`,
+    `core-adapters`,
     `cryptography-jsr105-api`,
     `persistence-db-postgres-skunk`,
     `reprmaker-circe`,
@@ -79,6 +83,26 @@ lazy val core =
       )
     )
 
+lazy val `retries-cats-retry` =
+  project
+    .in(file("02-c-retries-cats-retry"))
+    .dependsOn(
+      Seq(
+        core
+      ).map(_ % Cctt): _*
+    )
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.catsRetry,
+        Libraries.catsEffect
+      )
+    )
+
 lazy val `json-circe-util` =
   project
     .in(file("02-c-json-circe-util"))
@@ -118,7 +142,6 @@ lazy val `delivery-http-http4s` =
         Libraries.fs2,       // TODO check if we need this
         Libraries.http4sDsl,
         Libraries.http4sServer,
-        Libraries.http4sClient,
         Libraries.http4sCirce,
         Libraries.http4sJwtAuth // it would be awesome if we could remove it
       )
@@ -141,6 +164,32 @@ lazy val `cache-redis-redis4cats` =
       )
     )
 
+lazy val `client-http-http4s` =
+  project
+    .in(file("02-o-client-http-http4s"))
+    .dependsOn(
+      Seq(
+        core,
+        `json-circe-util`
+      ).map(_ % Cctt): _*
+    )
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.catsEffect,
+        Libraries.catsRetry, // TODO check if we need this
+        Libraries.fs2,       // TODO check if we need this
+        Libraries.http4sDsl,
+        Libraries.http4sClient,
+        Libraries.http4sCirce,
+        Libraries.http4sJwtAuth // it would be awesome if we could remove it
+      )
+    )
+
 lazy val `config-file-ciris` =
   project
     .in(file("02-o-config-file-ciris"))
@@ -156,6 +205,20 @@ lazy val `config-file-ciris` =
         Libraries.cirisCore,
         Libraries.cirisEnum,
         Libraries.cirisRefined
+      )
+    )
+
+lazy val `core-adapters` =
+  project
+    .in(file("02-o-core-adapters"))
+    .dependsOn(core % Cctt)
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB
       )
     )
 
@@ -180,7 +243,8 @@ lazy val `persistence-db-postgres-skunk` =
     .in(file("02-o-persistence-db-postgres-skunk"))
     .dependsOn(
       Seq(
-        core
+        core,
+        `retries-cats-retry`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -248,7 +312,9 @@ lazy val main =
         `delivery-http-http4s`,
         // o
         `cache-redis-redis4cats`,
+        `client-http-http4s`,
         `config-file-ciris`,
+        `core-adapters`,
         `cryptography-jsr105-api`,
         `persistence-db-postgres-skunk`,
         `reprmaker-circe`,

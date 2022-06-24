@@ -23,7 +23,7 @@ object ControllerImpl {
     new Controller.Admin[F] with Http4sDsl[F] {
       override lazy val routes: HttpRoutes[F] =
         Router {
-          "/brands" ->
+          "/checkout" ->
             authMiddleware {
               AuthedRoutes.of[CommonUser, F] {
                 case ar @ POST -> Root as user =>

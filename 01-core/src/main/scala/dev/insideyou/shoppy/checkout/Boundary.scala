@@ -14,7 +14,9 @@ trait Boundary[F[_]] {
 }
 
 object BoundaryImpl {
-  def make[F[_]: MonadThrow: Background](gate: Gate[F]): Boundary[F] =
+  def make[F[_]: MonadThrow: Background](
+      gate: Gate[F]
+  ): Boundary[F] =
     new Boundary[F] {
       override def process(userId: UserId, card: Card): F[ordering.OrderId] =
         gate

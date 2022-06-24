@@ -20,12 +20,12 @@ trait PaymentClient[F[_]] {
 
 object PaymentClient {
   def make[F[_]: JsonDecoder: MonadCancelThrow](
-      cfg: PaymentConfig,
+      config: PaymentConfig,
       client: Client[F]
   ): PaymentClient[F] =
     new PaymentClient[F] with Http4sClientDsl[F] {
       def process(payment: Payment): F[PaymentId] =
-        Uri.fromString(cfg.uri.value + "/payments").liftTo[F].flatMap { uri =>
+        Uri.fromString(config.uri.value + "/payments").liftTo[F].flatMap { uri =>
           client.run(POST(payment, uri)).use { resp =>
             resp.status match {
               case Status.Ok | Status.Conflict =>

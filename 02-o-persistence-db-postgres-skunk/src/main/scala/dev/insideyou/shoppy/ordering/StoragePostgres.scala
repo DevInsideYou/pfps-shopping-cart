@@ -77,5 +77,11 @@ object StoragePostgresImpl {
         SELECT * FROM orders
         WHERE user_id = $userId
        """.query(decoder)
+
+    val insertOrder: Command[UserId ~ Order] =
+      sql"""
+        INSERT INTO orders
+        VALUES ($encoder)
+       """.command
   }
 }
