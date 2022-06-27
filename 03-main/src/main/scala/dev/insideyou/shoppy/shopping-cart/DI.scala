@@ -2,6 +2,8 @@ package dev.insideyou
 package shoppy
 package shopping_cart
 
+import scala.util.chaining._
+
 import cats._
 import cats.syntax.all._
 import cats.effect._
@@ -14,17 +16,17 @@ object DI {
       postgres: Resource[F, Session[F]],
       redis: RedisCommands[F, String, String],
       authMiddleware: AuthMiddleware[F, CommonUser]
-  ): F[Controller[F]] =
-    ControllerImpl
+  ): F[(Controller[F], Boundary[F])] =
+    BoundaryImpl
       .make(
-        boundary = BoundaryImpl.make(
-          gate = Gate.make(
-            hasConfig = HasConfigImpl.make,
-            storage = StoragePostgresImpl.make(postgres),
-            redis = RedisImpl.make(redis)
-          )
-        ),
-        authMiddleware = authMiddleware
+        gate = Gate.make(
+          hasConfig = HasConfigImpl.make,
+          storage = StoragePostgresImpl.make(postgres),
+          redis = RedisImpl.make(redis)
+        )
       )
+      .pipe { boundary =>
+        ControllerImpl.make(boundary, authMiddleware) -> boundary
+      }
       .pure
 }

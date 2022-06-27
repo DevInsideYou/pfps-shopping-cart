@@ -13,6 +13,7 @@ object ResourcesLoader {
   ): F[Resource[F, Resources[F]]] =
     (
       RedisSessionLoader.load(appEnvironment),
-      PostgresSessionLoader.load
+      PostgresSessionLoader.load,
+      HttpClientLoader.load(appEnvironment)
     ).parTupled.map(_.parMapN(Resources.apply))
 }

@@ -1,10 +1,9 @@
-package dev.insideyou
-package shoppy
+package dev
 
 import eu.timepit.refined.types.string.NonEmptyString
 import io.estatico.newtype.macros.newtype
 
-package object checkout {
+package object insideyou {
   @newtype
   final case class PaymentURI(value: NonEmptyString)
 
