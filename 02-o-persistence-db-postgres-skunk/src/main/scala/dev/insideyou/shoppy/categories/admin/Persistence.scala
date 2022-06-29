@@ -6,13 +6,12 @@ package admin
 import cats.effect._
 import cats.syntax.all._
 import skunk._
-import skunk.implicits._
 
-object StoragePostgresImpl {
+object PersistenceImpl {
   def make[F[_]: GenUUID: MonadCancelThrow](
       postgres: Resource[F, Session[F]]
-  ): Storage[F] =
-    new Storage[F] {
+  ): Persistence[F] =
+    new Persistence[F] {
       override def createCategory(name: CategoryName): F[CategoryId] =
         postgres.use { session =>
           session.prepare(SQL.insertCategory).use { cmd =>
@@ -22,14 +21,4 @@ object StoragePostgresImpl {
           }
         }
     }
-
-  private object SQL {
-    import categories.StoragePostgresImpl.SQL._
-
-    val insertCategory: Command[Category] =
-      sql"""
-        INSERT INTO categories
-        VALUES ($codec)
-        """.command
-  }
 }

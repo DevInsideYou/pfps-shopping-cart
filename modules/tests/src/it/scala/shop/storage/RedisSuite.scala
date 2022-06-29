@@ -1,4 +1,4 @@
-package shop.storage
+package shop.Persistence
 
 import java.util.UUID
 

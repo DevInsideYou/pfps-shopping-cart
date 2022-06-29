@@ -1,4 +1,4 @@
-package shop.storage
+package shop.Persistence
 
 import shop.domain._
 import shop.domain.brand._

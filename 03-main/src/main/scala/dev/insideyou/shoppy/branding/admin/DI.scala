@@ -18,7 +18,7 @@ object DI {
       .make(
         boundary = BoundaryImpl.make(
           gate = Gate.make(
-            storage = StoragePostgresImpl.make(postgres)
+            persistence = PersistenceImpl.make(postgres)
           )
         ),
         authMiddleware = authMiddleware

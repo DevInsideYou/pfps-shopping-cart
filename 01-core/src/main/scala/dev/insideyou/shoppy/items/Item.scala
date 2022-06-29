@@ -18,10 +18,10 @@ final case class Item(
 )
 
 object Item {
-  implicit val currencyEq: Eq[Currency] =
+  implicit lazy val currencyEq: Eq[Currency] =
     Eq.and(Eq.and(Eq.by(_.code), Eq.by(_.symbol)), Eq.by(_.name))
 
-  implicit val moneyEq: Eq[Money] = Eq.and(Eq.by(_.amount), Eq.by(_.currency))
+  implicit lazy val moneyEq: Eq[Money] = Eq.and(Eq.by(_.amount), Eq.by(_.currency))
 
-  implicit val moneyShow: Show[Money] = Show.fromToString
+  implicit lazy val moneyShow: Show[Money] = Show.fromToString
 }

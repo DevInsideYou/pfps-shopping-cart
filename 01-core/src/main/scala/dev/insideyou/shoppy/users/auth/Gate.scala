@@ -5,7 +5,7 @@ package auth
 
 trait Gate[F[_], Token]
     extends HasConfig[F, Config]
-    with Storage[F]
+    with Persistence[F]
     with Crypto
     with Tokens[F, Token]
     with Redis[F, Token]
@@ -14,7 +14,7 @@ trait Gate[F[_], Token]
 object Gate {
   def make[F[_], Token](
       hasConfig: HasConfig[F, Config],
-      storage: Storage[F],
+      persistence: Persistence[F],
       crypto: Crypto,
       tokens: Tokens[F, Token],
       redis: Redis[F, Token],
@@ -25,13 +25,13 @@ object Gate {
         hasConfig.config
 
       override def findUser(userName: UserName): F[Option[UserWithPassword]] =
-        storage.findUser(userName)
+        persistence.findUser(userName)
 
       override def createUser(
           userName: UserName,
           password: EncryptedPassword
       ): F[Either[UserNameInUse, UserId]] =
-        storage.createUser(userName, password)
+        persistence.createUser(userName, password)
 
       override def encrypt(password: Password): EncryptedPassword =
         crypto.encrypt(password)
@@ -67,7 +67,7 @@ object Gate {
     }
 }
 
-trait Storage[F[_]] {
+trait Persistence[F[_]] {
   def findUser(userName: UserName): F[Option[UserWithPassword]]
   def createUser(userName: UserName, password: EncryptedPassword): F[Either[UserNameInUse, UserId]]
 }

@@ -27,7 +27,7 @@ object DI {
         boundary = BoundaryImpl.make(
           gate = Gate.make(
             hasConfig = hasConfig,
-            storage = StoragePostgresImpl.make(postgres),
+            persistence = PersistenceImpl.make(postgres),
             crypto = crypto,
             tokens = TokensImpl.make(jwtExpire),
             redis = RedisImpl.make(redis, stringToToken = auth.jwt.JwtToken),
@@ -38,6 +38,6 @@ object DI {
       )
     }
 
-  private implicit val ShowForJwtToken: Show[auth.jwt.JwtToken] =
+  private implicit lazy val ShowForJwtToken: Show[auth.jwt.JwtToken] =
     Show.fromToString
 }

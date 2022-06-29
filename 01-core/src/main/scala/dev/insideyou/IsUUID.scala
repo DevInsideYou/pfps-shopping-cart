@@ -11,8 +11,8 @@ trait IsUUID[A] {
 object IsUUID {
   def apply[A: IsUUID]: IsUUID[A] = implicitly
 
-  implicit val identityUUID: IsUUID[UUID] = new IsUUID[UUID] {
-    val _UUID = Iso[UUID, UUID](identity)(identity)
+  implicit lazy val identityUUID: IsUUID[UUID] = new IsUUID[UUID] {
+    lazy val _UUID = Iso[UUID, UUID](identity)(identity)
   }
 }
 

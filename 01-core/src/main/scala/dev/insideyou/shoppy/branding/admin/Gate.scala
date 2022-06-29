@@ -3,17 +3,16 @@ package shoppy
 package branding
 package admin
 
-trait Gate[F[_]] extends Storage[F]
+trait Gate[F[_]] extends Persistence[F]
 
 object Gate {
-  def make[F[_]](storage: Storage[F]): Gate[F] =
+  def make[F[_]](persistence: Persistence[F]): Gate[F] =
     new Gate[F] {
       override def createBrand(name: BrandName): F[BrandId] =
-        storage.createBrand(name)
+        persistence.createBrand(name)
     }
 }
 
-// TODO rename to Persistence
-trait Storage[F[_]] {
+trait Persistence[F[_]] {
   def createBrand(name: BrandName): F[BrandId]
 }

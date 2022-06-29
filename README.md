@@ -16,7 +16,7 @@ Here's an overview of the different components that make this application.
 - Both **Services** and **Authentication** are *algebras*. The latter are mainly dependencies for some of the services.
 - Programs shows **Checkout**, the business logic that combines most of the services.
 - Effects show our custom interfaces required implicitly.
-- The lines connecting services to Redis and PostgreSQL show which ones access which storage.
+- The lines connecting services to Redis and PostgreSQL show which ones access which persistence.
 - The HTTP layer shows the client and the different routes.
 - At the very end, we have both the modules and the entry point to the application.
 

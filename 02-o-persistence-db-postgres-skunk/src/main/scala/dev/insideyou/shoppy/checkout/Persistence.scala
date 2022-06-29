@@ -10,12 +10,12 @@ import skunk._
 import skunk.implicits._
 import squants.market.Money
 
-object StoragePostgresImpl {
+object PersistenceImpl {
   def make[F[_]: MonadCancelThrow: Retry: GenUUID](
       postgres: Resource[F, Session[F]],
       policy: RetryPolicy[F]
-  ): Storage[F] =
-    new Storage[F] {
+  ): Persistence[F] =
+    new Persistence[F] {
       override def createOrder(
           userId: UserId,
           paymentId: ordering.PaymentId,
@@ -35,7 +35,7 @@ object StoragePostgresImpl {
           total: Money
       ): F[ordering.OrderId] =
         postgres.use { session =>
-          session.prepare(ordering.StoragePostgresImpl.SQL.insertOrder).use { cmd =>
+          session.prepare(ordering.SQL.insertOrder).use { cmd =>
             ID.make[F, ordering.OrderId].flatMap { id =>
               val itMap = items.toList.map(x => x.item.uuid -> x.quantity).toMap
               val order = ordering.Order(id, paymentId, itMap, total)

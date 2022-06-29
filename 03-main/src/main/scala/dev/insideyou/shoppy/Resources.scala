@@ -8,5 +8,5 @@ import skunk._
 final case class Resources[F[_]](
     redis: RedisCommands[F, String, String],
     postgres: Resource[F, Session[F]],
-    httpClientResources: HttpClientResources[F]
+    clientResources: HttpClientResources[F]
 )

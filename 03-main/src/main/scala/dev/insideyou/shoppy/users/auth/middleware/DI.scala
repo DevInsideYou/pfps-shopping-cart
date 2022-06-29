@@ -24,6 +24,6 @@ object DI {
       )
     )
 
-  private implicit val ShowForJwtToken: Show[jwt.JwtToken] =
+  private implicit lazy val ShowForJwtToken: Show[jwt.JwtToken] =
     Show.fromToString
 }

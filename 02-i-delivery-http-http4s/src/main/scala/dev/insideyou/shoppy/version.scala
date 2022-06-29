@@ -2,5 +2,5 @@ package dev.insideyou
 package shoppy
 
 object version {
-  val v1 = "/v1"
+  lazy val v1 = "/v1"
 }

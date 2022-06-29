@@ -3,18 +3,16 @@ package shoppy
 package users
 package auth
 
-import cats.syntax.all._
 import cats.effect._
-
+import cats.syntax.all._
 import skunk._
-import skunk.codec.all._
 import skunk.implicits._
 
-object StoragePostgresImpl {
+object PersistenceImpl {
   def make[F[_]: GenUUID: MonadCancelThrow](
       postgres: Resource[F, Session[F]]
-  ): Storage[F] =
-    new Storage[F] {
+  ): Persistence[F] =
+    new Persistence[F] {
       override def findUser(username: UserName): F[Option[UserWithPassword]] =
         postgres.use { session =>
           session.prepare(SQL.selectUser).use { q =>
@@ -43,38 +41,4 @@ object StoragePostgresImpl {
           }
         }
     }
-
-  object SQL {
-    lazy val userId: Codec[UserId] =
-      uuid.imap[UserId](UserId(_))(_.value)
-
-    lazy val userName: Codec[UserName] =
-      varchar.imap[UserName](UserName(_))(_.value)
-
-    lazy val encPassword: Codec[EncryptedPassword] =
-      varchar.imap[EncryptedPassword](EncryptedPassword(_))(_.value)
-
-    final case class User(id: UserId, name: UserName)
-
-    lazy val codec: Codec[User ~ EncryptedPassword] =
-      (userId ~ userName ~ encPassword).imap {
-        case i ~ n ~ p =>
-          User(i, n) ~ p
-      } {
-        case u ~ p =>
-          u.id ~ u.name ~ p
-      }
-
-    lazy val selectUser: Query[UserName, User ~ EncryptedPassword] =
-      sql"""
-        SELECT * FROM users
-        WHERE name = $userName
-       """.query(codec)
-
-    lazy val insertUser: Command[User ~ EncryptedPassword] =
-      sql"""
-        INSERT INTO users
-        VALUES ($codec)
-        """.command
-  }
 }

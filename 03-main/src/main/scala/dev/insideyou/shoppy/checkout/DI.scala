@@ -20,17 +20,17 @@ object DI {
       authMiddleware: AuthMiddleware[F, CommonUser],
       retryPolicy: RetryPolicy[F]
   ): F[Controller[F]] = {
-    lazy val hasLogger       = HasLoggerImpl.make(implicitly[log4cats.Logger[F]], "checkout")
-    implicit lazy val logger = hasLogger.logger
+    implicit lazy val logger: Logger[F] =
+      LoggerImpl.make(implicitly, "checkout")
 
     ControllerImpl
       .make(
         boundary = BoundaryImpl.make(
           gate = Gate.make(
-            hasLogger = hasLogger,
+            hasLogger = HasLoggerImpl.make(logger),
             paymentClient =
               PaymentClientImpl.make(httpClientResources.config, httpClientResources.client),
-            storage = StoragePostgresImpl.make(postgres, retryPolicy),
+            persistence = PersistenceImpl.make(postgres, retryPolicy),
             redis = RedisImpl.make(redis),
             otherBoundaries = OtherBoundariesImpl.make(shoppingCartBoundary)
           )

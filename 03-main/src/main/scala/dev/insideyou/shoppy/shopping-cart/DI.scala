@@ -21,7 +21,7 @@ object DI {
       .make(
         gate = Gate.make(
           hasConfig = HasConfigImpl.make,
-          storage = StoragePostgresImpl.make(postgres),
+          persistence = PersistenceImpl.make(postgres),
           redis = RedisImpl.make(redis)
         )
       )

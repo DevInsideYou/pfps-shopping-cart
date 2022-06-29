@@ -25,7 +25,7 @@ object HasLoggerImpl {
   def make[F[_]](logger: log4cats.Logger[F], moduleName: String): HasLogger[F] =
     make(LoggerImpl.make(logger, moduleName))
 
-  private def make[F[_]](l: Logger[F]): HasLogger[F] =
+  def make[F[_]](l: Logger[F]): HasLogger[F] =
     new HasLogger[F] {
       override lazy val logger: Logger[F] =
         l

@@ -8,7 +8,7 @@ import squants.market.Money
 trait Gate[F[_]]
     extends HasLogger[F]
     with PaymentClient[F]
-    with Storage[F]
+    with Persistence[F]
     with Redis[F]
     with OtherBoundaries[F]
 
@@ -16,7 +16,7 @@ object Gate {
   def make[F[_]](
       hasLogger: HasLogger[F],
       paymentClient: PaymentClient[F],
-      storage: Storage[F],
+      persistence: Persistence[F],
       redis: Redis[F],
       otherBoundaries: OtherBoundaries[F]
   ): Gate[F] =
@@ -33,7 +33,7 @@ object Gate {
           items: NonEmptyList[shopping_cart.CartItem],
           total: Money
       ): F[ordering.OrderId] =
-        storage.createOrder(userId, paymentId, items, total)
+        persistence.createOrder(userId, paymentId, items, total)
 
       override def clearCart(userId: UserId): F[Unit] =
         redis.clearCart(userId)
@@ -47,7 +47,7 @@ trait PaymentClient[F[_]] {
   def processPayment(payment: Payment): F[ordering.PaymentId]
 }
 
-trait Storage[F[_]] {
+trait Persistence[F[_]] {
   def createOrder(
       userId: UserId,
       paymentId: ordering.PaymentId,

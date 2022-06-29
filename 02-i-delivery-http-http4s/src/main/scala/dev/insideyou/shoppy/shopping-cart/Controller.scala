@@ -55,6 +55,6 @@ object ControllerImpl {
   private implicit lazy val encoderForCartTotal: Encoder[CartTotal] =
     deriveMagnoliaEncoder
 
-  private implicit val jsonDecoder: Decoder[Cart] =
+  private implicit lazy val jsonDecoder: Decoder[Cart] =
     Decoder.forProduct1("items")(Cart.apply)
 }

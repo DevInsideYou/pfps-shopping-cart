@@ -1,4 +1,3 @@
-// TODO remove dependencies that we don't need
 import Dependencies._
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
@@ -25,6 +24,7 @@ lazy val root = (project in file("."))
     // i
     `delivery-http-http4s`,
     // o
+    `auth-jwt-pdi`,
     `cache-redis-redis4cats`,
     `client-http-http4s`,
     `config-file-ciris`,
@@ -32,7 +32,6 @@ lazy val root = (project in file("."))
     `cryptography-jsr105-api`,
     `persistence-db-postgres-skunk`,
     `reprmaker-circe`,
-    `tokens-jwt-pdi`,
     // old stuff
     `big-ball-of-mud`,
     tests
@@ -61,7 +60,6 @@ lazy val tests = (project in file("modules/tests"))
   )
   .dependsOn(`big-ball-of-mud`)
 
-// add scalafixCommon settings (removed because they refer to Integration)
 lazy val core =
   project
     .in(file("01-core"))
@@ -98,8 +96,8 @@ lazy val `retries-cats-retry` =
         CompilerPlugin.kindProjector,
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
-        Libraries.catsRetry,
-        Libraries.catsEffect
+        Libraries.catsEffect,
+        Libraries.catsRetry
       )
     )
 
@@ -138,12 +136,31 @@ lazy val `delivery-http-http4s` =
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
         Libraries.catsEffect,
-        Libraries.catsRetry, // TODO check if we need this
-        Libraries.fs2,       // TODO check if we need this
-        Libraries.http4sDsl,
-        Libraries.http4sServer,
         Libraries.http4sCirce,
-        Libraries.http4sJwtAuth // it would be awesome if we could remove it
+        Libraries.http4sDsl,
+        Libraries.http4sJwtAuth,
+        Libraries.http4sServer
+      )
+    )
+
+lazy val `auth-jwt-pdi` =
+  project
+    .in(file("02-o-auth-jwt-pdi"))
+    .dependsOn(
+      Seq(
+        core,
+        `json-circe-util`
+      ).map(_ % Cctt): _*
+    )
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.catsEffect,
+        Libraries.http4sJwtAuth // this is a wrapper around http4s and jwt-scala
       )
     )
 
@@ -181,12 +198,9 @@ lazy val `client-http-http4s` =
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
         Libraries.catsEffect,
-        Libraries.catsRetry, // TODO check if we need this
-        Libraries.fs2,       // TODO check if we need this
         Libraries.http4sDsl,
         Libraries.http4sClient,
-        Libraries.http4sCirce,
-        Libraries.http4sJwtAuth // it would be awesome if we could remove it
+        Libraries.http4sCirce
       )
     )
 
@@ -255,13 +269,13 @@ lazy val `persistence-db-postgres-skunk` =
         CompilerPlugin.betterMonadicFor,
         CompilerPlugin.semanticDB,
         Libraries.catsEffect,
-        Libraries.catsRetry,
         Libraries.fs2,
-        Libraries.skunkCore,
-        Libraries.skunkCirce
+        Libraries.skunkCirce,
+        Libraries.skunkCore
       )
     )
 
+// TODO remove
 lazy val `reprmaker-circe` =
   project
     .in(file("02-o-reprmaker-circe"))
@@ -281,28 +295,6 @@ lazy val `reprmaker-circe` =
       )
     )
 
-// TODO raname this to auth
-lazy val `tokens-jwt-pdi` =
-  project
-    .in(file("02-o-tokens-jwt-pdi"))
-    .dependsOn(
-      Seq(
-        core,
-        `json-circe-util`
-      ).map(_ % Cctt): _*
-    )
-    .settings(
-      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      resolvers += Resolver.sonatypeRepo("snapshots"),
-      libraryDependencies ++= Seq(
-        CompilerPlugin.kindProjector,
-        CompilerPlugin.betterMonadicFor,
-        CompilerPlugin.semanticDB,
-        Libraries.catsEffect,
-        Libraries.http4sJwtAuth // this is a wrapper around http4s and jwt-scala
-      )
-    )
-
 lazy val main =
   project
     .in(file("03-main"))
@@ -311,14 +303,14 @@ lazy val main =
         // i
         `delivery-http-http4s`,
         // o
+        `auth-jwt-pdi`,
         `cache-redis-redis4cats`,
         `client-http-http4s`,
         `config-file-ciris`,
         `core-adapters`,
         `cryptography-jsr105-api`,
         `persistence-db-postgres-skunk`,
-        `reprmaker-circe`,
-        `tokens-jwt-pdi`
+        `reprmaker-circe`
       ).map(_ % Cctt): _*
     )
     .settings(

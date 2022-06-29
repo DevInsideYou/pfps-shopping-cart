@@ -13,7 +13,7 @@ object HasConfigImpl {
   def make[F[_]: Async]: HasConfig[F, Config] =
     new HasConfig[F, Config] {
       override def config: F[Config] =
-        env("SC_ACCESS_TOKEN_SECRET_KEY") // TODO we're already loading this, so let's load the entire config at once
+        env("SC_ACCESS_TOKEN_SECRET_KEY")
           .as[JwtAccessTokenKeyConfig]
           .secret
           .map(a => Config(a.value))

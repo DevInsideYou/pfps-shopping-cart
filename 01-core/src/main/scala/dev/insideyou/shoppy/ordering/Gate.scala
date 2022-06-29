@@ -2,19 +2,19 @@ package dev.insideyou
 package shoppy
 package ordering
 
-trait Gate[F[_]] extends Storage[F]
+trait Gate[F[_]] extends Persistence[F]
 object Gate {
-  def make[F[_]](storage: Storage[F]): Gate[F] =
+  def make[F[_]](persistence: Persistence[F]): Gate[F] =
     new Gate[F] {
       override def getOrder(userId: UserId, orderId: OrderId): F[Option[Order]] =
-        storage.getOrder(userId, orderId)
+        persistence.getOrder(userId, orderId)
 
       override def findOrderBy(userId: UserId): F[List[Order]] =
-        storage.findOrderBy(userId)
+        persistence.findOrderBy(userId)
     }
 }
 
-trait Storage[F[_]] {
+trait Persistence[F[_]] {
   def getOrder(userId: UserId, orderId: OrderId): F[Option[Order]]
   def findOrderBy(userId: UserId): F[List[Order]]
 }

@@ -6,13 +6,12 @@ package admin
 import cats.effect._
 import cats.syntax.all._
 import skunk._
-import skunk.implicits._
 
-object StoragePostgresImpl {
+object PersistenceImpl {
   def make[F[_]: GenUUID: MonadCancelThrow](
       postgres: Resource[F, Session[F]]
-  ): Storage[F] =
-    new Storage[F] {
+  ): Persistence[F] =
+    new Persistence[F] {
       override def createBrand(name: BrandName): F[BrandId] =
         postgres.use { session =>
           session.prepare(SQL.insertBrand).use { cmd =>
@@ -22,14 +21,4 @@ object StoragePostgresImpl {
           }
         }
     }
-
-  private object SQL {
-    import branding.StoragePostgresImpl.SQL._
-
-    val insertBrand: Command[Brand] =
-      sql"""
-        INSERT INTO brands
-        VALUES ($codec)
-        """.command
-  }
 }

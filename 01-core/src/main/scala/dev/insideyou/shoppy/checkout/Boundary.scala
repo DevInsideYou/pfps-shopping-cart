@@ -7,7 +7,6 @@ import scala.concurrent.duration._
 import cats._
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import squants.market.Money
 
 trait Boundary[F[_]] {
   def process(userId: UserId, card: Card): F[ordering.OrderId]
@@ -54,10 +53,3 @@ object BoundaryImpl {
         }
     }
 }
-
-// TODO we're probably gonna move this thing at some point
-final case class Payment(
-    id: UserId,
-    total: Money,
-    card: Card
-)
