@@ -27,11 +27,10 @@ lazy val root = (project in file("."))
     `auth-jwt-pdi`,
     `cache-redis-redis4cats`,
     `client-http-http4s`,
-    `config-file-ciris`,
+    `config-env-ciris`,
     `core-adapters`,
     `cryptography-jsr105-api`,
     `persistence-db-postgres-skunk`,
-    `reprmaker-circe`,
     // old stuff
     `big-ball-of-mud`,
     tests
@@ -104,6 +103,11 @@ lazy val `retries-cats-retry` =
 lazy val `json-circe-util` =
   project
     .in(file("02-c-json-circe-util"))
+    .dependsOn(
+      Seq(
+        core
+      ).map(_ % Cctt): _*
+    )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
       resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -124,7 +128,6 @@ lazy val `delivery-http-http4s` =
     .in(file("02-i-delivery-http-http4s"))
     .dependsOn(
       Seq(
-        core,
         `json-circe-util`
       ).map(_ % Cctt): _*
     )
@@ -148,7 +151,6 @@ lazy val `auth-jwt-pdi` =
     .in(file("02-o-auth-jwt-pdi"))
     .dependsOn(
       Seq(
-        core,
         `json-circe-util`
       ).map(_ % Cctt): _*
     )
@@ -167,7 +169,11 @@ lazy val `auth-jwt-pdi` =
 lazy val `cache-redis-redis4cats` =
   project
     .in(file("02-o-cache-redis-redis4cats"))
-    .dependsOn(core % Cctt)
+    .dependsOn(
+      Seq(
+        `json-circe-util`
+      ).map(_ % Cctt): _*
+    )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
       resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -186,7 +192,6 @@ lazy val `client-http-http4s` =
     .in(file("02-o-client-http-http4s"))
     .dependsOn(
       Seq(
-        core,
         `json-circe-util`
       ).map(_ % Cctt): _*
     )
@@ -204,10 +209,14 @@ lazy val `client-http-http4s` =
       )
     )
 
-lazy val `config-file-ciris` =
+lazy val `config-env-ciris` =
   project
-    .in(file("02-o-config-file-ciris"))
-    .dependsOn(core % Cctt)
+    .in(file("02-o-config-env-ciris"))
+    .dependsOn(
+      Seq(
+        core
+      ).map(_ % Cctt): _*
+    )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
       resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -225,7 +234,11 @@ lazy val `config-file-ciris` =
 lazy val `core-adapters` =
   project
     .in(file("02-o-core-adapters"))
-    .dependsOn(core % Cctt)
+    .dependsOn(
+      Seq(
+        core
+      ).map(_ % Cctt): _*
+    )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
       resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -239,7 +252,11 @@ lazy val `core-adapters` =
 lazy val `cryptography-jsr105-api` =
   project
     .in(file("02-o-cryptography-jsr105-api"))
-    .dependsOn(core % Cctt)
+    .dependsOn(
+      Seq(
+        core
+      ).map(_ % Cctt): _*
+    )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
       resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -257,7 +274,7 @@ lazy val `persistence-db-postgres-skunk` =
     .in(file("02-o-persistence-db-postgres-skunk"))
     .dependsOn(
       Seq(
-        core,
+        `json-circe-util`,
         `retries-cats-retry`
       ).map(_ % Cctt): _*
     )
@@ -275,26 +292,6 @@ lazy val `persistence-db-postgres-skunk` =
       )
     )
 
-// TODO remove
-lazy val `reprmaker-circe` =
-  project
-    .in(file("02-o-reprmaker-circe"))
-    .dependsOn(
-      Seq(
-        core,
-        `json-circe-util`
-      ).map(_ % Cctt): _*
-    )
-    .settings(
-      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
-      resolvers += Resolver.sonatypeRepo("snapshots"),
-      libraryDependencies ++= Seq(
-        CompilerPlugin.kindProjector,
-        CompilerPlugin.betterMonadicFor,
-        CompilerPlugin.semanticDB
-      )
-    )
-
 lazy val main =
   project
     .in(file("03-main"))
@@ -306,11 +303,10 @@ lazy val main =
         `auth-jwt-pdi`,
         `cache-redis-redis4cats`,
         `client-http-http4s`,
-        `config-file-ciris`,
+        `config-env-ciris`,
         `core-adapters`,
         `cryptography-jsr105-api`,
-        `persistence-db-postgres-skunk`,
-        `reprmaker-circe`
+        `persistence-db-postgres-skunk`
       ).map(_ % Cctt): _*
     )
     .settings(

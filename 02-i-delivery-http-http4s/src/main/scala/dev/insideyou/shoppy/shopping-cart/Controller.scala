@@ -4,15 +4,11 @@ package shopping_cart
 
 import cats._
 import cats.syntax.all._
-import io.circe._
-import io.circe.magnolia.derivation.encoder.semiauto._
 import org.http4s._
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server._
-
-import items.CirceCodecs._
 
 object ControllerImpl {
   def make[F[_]: JsonDecoder: Monad](
@@ -20,6 +16,8 @@ object ControllerImpl {
       authMiddleware: AuthMiddleware[F, CommonUser]
   ): Controller[F] =
     new Controller.Open[F] with Http4sDsl[F] {
+      import CirceCodecs._
+
       override lazy val routes: HttpRoutes[F] =
         authMiddleware {
           AuthedRoutes.of[CommonUser, F] {
@@ -47,14 +45,4 @@ object ControllerImpl {
           }
         }
     }
-
-  @scala.annotation.nowarn("cat=unused")
-  private implicit lazy val encoderForCartItem: Encoder[CartItem] =
-    deriveMagnoliaEncoder
-
-  private implicit lazy val encoderForCartTotal: Encoder[CartTotal] =
-    deriveMagnoliaEncoder
-
-  private implicit lazy val jsonDecoder: Decoder[Cart] =
-    Decoder.forProduct1("items")(Cart.apply)
 }

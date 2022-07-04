@@ -6,6 +6,9 @@ package auth
 import cats._
 import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
+import io.circe.syntax._
+
+import CirceCodecs._
 
 object RedisImpl {
   def make[F[_]: NonEmptyParallel: Functor, Token: Show](
@@ -14,13 +17,13 @@ object RedisImpl {
   ): Redis[F, Token] =
     new Redis[F, Token] {
       override def cacheUserInRedis(
-          userRepr: UserRepr,
+          user: User,
           userName: UserName,
           token: Token,
           expiresIn: TokenExpiration
       ): F[Unit] =
         (
-          redis.setEx(token.show, userRepr.show, expiresIn.value),
+          redis.setEx(token.show, user.asJson.noSpaces.show, expiresIn.value),
           redis.setEx(userName.show, token.show, expiresIn.value)
         ).parTupled.void
 

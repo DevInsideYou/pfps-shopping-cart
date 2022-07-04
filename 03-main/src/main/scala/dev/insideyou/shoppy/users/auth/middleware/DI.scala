@@ -18,7 +18,6 @@ object DI {
         gate = Gate.make(
           hasConfig = HasConfigImpl.make,
           redis = RedisImpl.make(redis),
-          reprMaker = ReprMakerImpl.make,
           tokens = TokensImpl.make
         )
       )

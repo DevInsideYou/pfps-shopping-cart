@@ -30,8 +30,7 @@ object DI {
             persistence = PersistenceImpl.make(postgres),
             crypto = crypto,
             tokens = TokensImpl.make(jwtExpire),
-            redis = RedisImpl.make(redis, stringToToken = auth.jwt.JwtToken),
-            reprMaker = ReprMakerImpl.make
+            redis = RedisImpl.make(redis, stringToToken = auth.jwt.JwtToken)
           )
         ),
         authMiddleware = authMiddleware

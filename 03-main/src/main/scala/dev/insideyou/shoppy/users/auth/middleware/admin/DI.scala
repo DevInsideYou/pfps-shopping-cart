@@ -15,7 +15,6 @@ object DI {
       boundary = BoundaryImpl.make(
         gate = Gate.make(
           hasConfig = HasConfigImpl.make,
-          reprMaker = ReprMakerImpl.make,
           tokens = TokensImpl.make
         )
       )

@@ -3,8 +3,7 @@ package shoppy
 package items
 
 import io.circe._
-import io.circe.magnolia.derivation.encoder.semiauto._
-import io.circe.magnolia.derivation.decoder.semiauto._
+import derevo.circe.magnolia._
 import squants.market._
 
 import branding.CirceCodecs._
@@ -27,7 +26,7 @@ object CirceCodecs {
     Codec.from(ItemDescription.deriving, ItemDescription.deriving)
 
   implicit lazy val itemCodec: Codec[Item] =
-    Codec.from(deriveMagnoliaDecoder, deriveMagnoliaEncoder)
+    Codec.from(decoder.instance, encoder.instance)
 
   implicit lazy val moneyCodec: Codec[Money] =
     Codec.from(

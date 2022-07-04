@@ -17,14 +17,13 @@ object BoundaryImpl {
         for {
           config                  <- gate.config
           (adminToken, adminAuth) <- tokenAndAuth(config)
-          rawAdminClaim           <- gate.rawClaim(adminToken, adminAuth)
-          content                 <- gate.content(rawAdminClaim)
+          claim                   <- gate.claim(adminToken, adminAuth)
         } yield AuthMiddleware(
           adminAuth,
           find = token =>
             (token === adminToken)
               .guard[Option]
-              .as(adminUser(content))
+              .as(adminUser(claim))
               .pure
         )
 

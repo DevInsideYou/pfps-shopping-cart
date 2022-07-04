@@ -3,8 +3,7 @@ package shoppy
 package branding
 
 import io.circe._
-import io.circe.magnolia.derivation.encoder.semiauto._
-import io.circe.magnolia.derivation.decoder.semiauto._
+import derevo.circe.magnolia._
 
 object CirceCodecs {
   implicit lazy val brandIdCodec: Codec[BrandId] =
@@ -14,5 +13,5 @@ object CirceCodecs {
     Codec.from(BrandName.deriving, BrandName.deriving)
 
   implicit lazy val brandCodec: Codec[Brand] =
-    Codec.from(deriveMagnoliaDecoder, deriveMagnoliaEncoder)
+    Codec.from(decoder.instance, encoder.instance)
 }

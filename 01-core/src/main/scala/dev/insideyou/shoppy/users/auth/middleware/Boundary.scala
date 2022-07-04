@@ -26,10 +26,11 @@ object BoundaryImpl {
           AuthMiddleware(
             auth,
             find = token =>
-              for {
-                userString <- gate.getUserStringFromCache(token)
-                commonUser <- userString.flatTraverse(gate.convertToCommonUser)
-              } yield commonUser
+              gate
+                .getUserFromCache(token)
+                .nested
+                .map(CommonUser.apply)
+                .value
           )
         }
     }

@@ -2,11 +2,12 @@ package dev.insideyou
 package shoppy
 package ordering
 
-import io.circe.{ Codec => CCodec, Decoder => _, Encoder => _, _ }
 import skunk._
 import skunk.circe.codec.all._
 import skunk.codec.all._
 import skunk.implicits._
+
+import items.CirceCodecs._
 
 object SQL {
   lazy val orderId: Codec[OrderId] =
@@ -14,18 +15,6 @@ object SQL {
 
   lazy val paymentId: Codec[PaymentId] =
     uuid.imap[PaymentId](PaymentId(_))(_.value)
-
-  implicit lazy val itemIdCodec: CCodec[items.ItemId] =
-    CCodec.from(items.ItemId.deriving, items.ItemId.deriving)
-
-  implicit lazy val itemIdKeyEncoder: KeyEncoder[items.ItemId] =
-    items.ItemId.deriving
-
-  implicit lazy val itemIdKeyDecoder: KeyDecoder[items.ItemId] =
-    items.ItemId.deriving
-
-  implicit lazy val quantityIdCodec: CCodec[items.Quantity] =
-    CCodec.from(items.Quantity.deriving, items.Quantity.deriving)
 
   lazy val decoder: Decoder[Order] =
     orderTwiddle.map {

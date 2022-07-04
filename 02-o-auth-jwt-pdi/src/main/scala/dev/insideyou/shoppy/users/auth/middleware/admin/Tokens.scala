@@ -9,9 +9,12 @@ import cats._
 import cats.syntax.all._
 import dev.profunktor.auth.jwt
 import eu.timepit.refined.auto._
+import io.circe.parser.decode
+
+import CirceCodecs._
 
 object TokensImpl {
-  def make[F[_]: ApplicativeThrow]: Tokens[F, jwt.JwtAuth, jwt.JwtToken] =
+  def make[F[_]: MonadThrow]: Tokens[F, jwt.JwtAuth, jwt.JwtToken] =
     new Tokens[F, jwt.JwtAuth, jwt.JwtToken] {
       override def token(adminKey: AdminUserTokenConfig): F[jwt.JwtToken] =
         jwt.JwtToken(adminKey.secret).pure
@@ -22,7 +25,10 @@ object TokensImpl {
           .pure
           .widen
 
-      override def rawClaim(token: jwt.JwtToken, auth: jwt.JwtAuth): F[String] =
-        jwt.jwtDecode(token, auth).map(_.content)
+      override def claim(token: jwt.JwtToken, auth: jwt.JwtAuth): F[ClaimContent] =
+        for {
+          jwtClaim     <- jwt.jwtDecode(token, auth)
+          claimContent <- ApplicativeThrow[F].fromEither(decode(jwtClaim.content))
+        } yield claimContent
     }
 }

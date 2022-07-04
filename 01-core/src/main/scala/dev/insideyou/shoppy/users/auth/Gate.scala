@@ -9,7 +9,6 @@ trait Gate[F[_], Token]
     with Crypto
     with Tokens[F, Token]
     with Redis[F, Token]
-    with ReprMaker[F]
 
 object Gate {
   def make[F[_], Token](
@@ -17,8 +16,7 @@ object Gate {
       persistence: Persistence[F],
       crypto: Crypto,
       tokens: Tokens[F, Token],
-      redis: Redis[F, Token],
-      reprMaker: ReprMaker[F]
+      redis: Redis[F, Token]
   ): Gate[F, Token] =
     new Gate[F, Token] {
       override def config: F[Config] =
@@ -40,12 +38,12 @@ object Gate {
         tokens.createToken(config)
 
       override def cacheUserInRedis(
-          userRepr: UserRepr,
+          user: User,
           userName: UserName,
           token: Token,
           expiresIn: TokenExpiration
       ): F[Unit] =
-        redis.cacheUserInRedis(userRepr, userName, token, expiresIn)
+        redis.cacheUserInRedis(user, userName, token, expiresIn)
 
       override def cacheUserWithPasswordInRedis(
           userWithPassword: UserWithPassword,
@@ -60,10 +58,6 @@ object Gate {
 
       override def deleteUserInRedis(userName: UserName, token: Token): F[Unit] =
         redis.deleteUserInRedis(userName, token)
-
-      override def makeUserRepr(user: User): F[UserRepr] =
-        reprMaker.makeUserRepr(user)
-
     }
 }
 
@@ -82,7 +76,7 @@ trait Tokens[F[_], Token] {
 
 trait Redis[F[_], Token] {
   def cacheUserInRedis(
-      userRepr: UserRepr,
+      user: User,
       userName: UserName,
       token: Token,
       expiresIn: TokenExpiration
@@ -97,8 +91,4 @@ trait Redis[F[_], Token] {
 
   def getTokenFromRedis(userName: UserName): F[Option[Token]]
   def deleteUserInRedis(userName: UserName, token: Token): F[Unit]
-}
-
-trait ReprMaker[F[_]] {
-  def makeUserRepr(user: User): F[UserRepr]
 }

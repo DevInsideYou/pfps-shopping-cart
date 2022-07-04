@@ -3,8 +3,7 @@ package shoppy
 package categories
 
 import io.circe._
-import io.circe.magnolia.derivation.encoder.semiauto._
-import io.circe.magnolia.derivation.decoder.semiauto._
+import derevo.circe.magnolia._
 
 object CirceCodecs {
   implicit lazy val categoryIdCodec: Codec[CategoryId] =
@@ -14,5 +13,5 @@ object CirceCodecs {
     Codec.from(CategoryName.deriving, CategoryName.deriving)
 
   implicit lazy val categoryCodec: Codec[Category] =
-    Codec.from(deriveMagnoliaDecoder, deriveMagnoliaEncoder)
+    Codec.from(decoder.instance, encoder.instance)
 }
