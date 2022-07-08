@@ -14,15 +14,29 @@ trait Boundary[F[_]] {
 }
 
 object BoundaryImpl {
-  def make[F[_]: NonEmptyParallel](gate: Gate[F]): Boundary[F] =
+  def make[F[_]: NonEmptyParallel](dependencies: Dependencies[F]): Boundary[F] =
     new Boundary[F] {
       override lazy val status: F[AppStatus] =
         (
-          gate.redisStatus(timeout),
-          gate.postgresStatus(timeout)
+          dependencies.redisStatus(timeout),
+          dependencies.postgresStatus(timeout)
         ).parMapN(AppStatus)
 
       private lazy val timeout =
         1.second
     }
+
+  trait Dependencies[F[_]] extends Redis[F] with Persistence[F]
+
+  def make[F[_]: NonEmptyParallel](persistence: Persistence[F], redis: Redis[F]): Boundary[F] =
+    make {
+      new Dependencies[F] {
+        override def redisStatus(timeout: FiniteDuration): F[RedisStatus] =
+          redis.redisStatus(timeout)
+
+        override def postgresStatus(timeout: FiniteDuration): F[PostgresStatus] =
+          persistence.postgresStatus(timeout)
+      }
+    }
+
 }

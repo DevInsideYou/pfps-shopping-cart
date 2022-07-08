@@ -13,9 +13,9 @@ import io.circe.parser.decode
 
 import CirceCodecs._
 
-object TokensImpl {
-  def make[F[_]: MonadThrow]: Tokens[F, jwt.JwtAuth, jwt.JwtToken] =
-    new Tokens[F, jwt.JwtAuth, jwt.JwtToken] {
+object AuthImpl {
+  def make[F[_]: MonadThrow]: Auth[F, jwt.JwtAuth, jwt.JwtToken] =
+    new Auth[F, jwt.JwtAuth, jwt.JwtToken] {
       override def token(adminKey: AdminUserTokenConfig): F[jwt.JwtToken] =
         jwt.JwtToken(adminKey.secret).pure
 

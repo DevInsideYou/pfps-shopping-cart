@@ -31,24 +31,42 @@ import categories.CirceCodecs._
 
 object ControllerImpl {
   def make[F[_]: JsonDecoder: MonadThrow](
-      boundary: Boundary[F],
-      authMiddleware: AuthMiddleware[F, AdminUser]
+      dependencies: Dependencies[F]
   ): Controller[F] =
     new Controller.Admin[F] with Http4sDsl[F] {
       override lazy val routes: HttpRoutes[F] =
         Router {
           "/items" ->
-            authMiddleware {
+            dependencies.authMiddleware {
               AuthedRoutes.of[AdminUser, F] {
                 case ar @ POST -> Root as _ =>
                   ar.req.decodeR[CreateItemParam] { item =>
-                    boundary.create(item.toDomain).flatMap { id =>
+                    dependencies.create(item.toDomain).flatMap { id =>
                       Created(JsonObject.singleton("item_id", id.asJson))
                     }
                   }
               }
             }
         }
+    }
+
+  trait Dependencies[F[_]] extends HasAuthMiddleware[F, AdminUser] with Boundary[F]
+
+  def make[F[_]: JsonDecoder: MonadThrow](
+      _authMiddleware: AuthMiddleware[F, AdminUser],
+      boundary: Boundary[F]
+  ): Controller[F] =
+    make {
+      new Dependencies[F] {
+        override def authMiddleware: AuthMiddleware[F, AdminUser] =
+          _authMiddleware
+
+        override def create(item: CreateItem): F[ItemId] =
+          boundary.create(item)
+
+        override def update(item: UpdateItem): F[Unit] =
+          boundary.update(item)
+      }
     }
 
   @derive(decoder, encoder, show)

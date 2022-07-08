@@ -61,7 +61,7 @@ val mkToken: IO[JwtToken] =
 
 In our case, our claim contains a UUID, which is used to identify the Admin Id. In practice, though, a JWT can be any valid JSON.
 
-Take a look at the [TokenGenerator program](https://github.com/gvolpe/pfps-shopping-cart/tree/master/modules/core/src/main/scala/tokens/generator.scala) to learn more.
+Take a look at the [TokenGenerator program](https://github.com/gvolpe/pfps-shopping-cart/tree/master/modules/core/src/main/scala/auth/generator.scala) to learn more.
 
 ## Tests
 

@@ -4,7 +4,6 @@ package shoppy
 import cats._
 import cats.effect._
 import cats.syntax.all._
-import dev.insideyou.shoppy.users.auth.JwtExpire
 import org.http4s.server.AuthMiddleware
 import org.typelevel.log4cats._
 import retry.RetryPolicy

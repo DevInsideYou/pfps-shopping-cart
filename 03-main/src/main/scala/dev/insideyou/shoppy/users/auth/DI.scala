@@ -24,16 +24,14 @@ object DI {
       crypto    <- CryptoImpl.make(config.passwordSalt)
     } yield {
       ControllerImpl.make(
+        authMiddleware,
         boundary = BoundaryImpl.make(
-          gate = Gate.make(
-            hasConfig = hasConfig,
-            persistence = PersistenceImpl.make(postgres),
-            crypto = crypto,
-            tokens = TokensImpl.make(jwtExpire),
-            redis = RedisImpl.make(redis, stringToToken = auth.jwt.JwtToken)
-          )
-        ),
-        authMiddleware = authMiddleware
+          hasConfig = hasConfig,
+          persistence = PersistenceImpl.make(postgres),
+          crypto = crypto,
+          auth = AuthImpl.make(jwtExpire),
+          redis = RedisImpl.make(redis, stringToToken = auth.jwt.JwtToken)
+        )
       )
     }
 

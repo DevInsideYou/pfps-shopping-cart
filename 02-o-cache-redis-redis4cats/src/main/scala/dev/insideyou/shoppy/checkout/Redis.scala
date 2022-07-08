@@ -5,7 +5,6 @@ package checkout
 import cats._
 import cats.syntax.all._
 import dev.profunktor.redis4cats.RedisCommands
-import dev.insideyou.shoppy.UserId
 
 object RedisImpl {
   def make[F[_]: Functor](

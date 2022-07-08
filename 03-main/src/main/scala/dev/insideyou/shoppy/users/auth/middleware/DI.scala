@@ -15,11 +15,9 @@ object DI {
   ): Middleware[F, CommonUser] =
     MiddlewareImpl.make(
       boundary = BoundaryImpl.make(
-        gate = Gate.make(
-          hasConfig = HasConfigImpl.make,
-          redis = RedisImpl.make(redis),
-          tokens = TokensImpl.make
-        )
+        hasConfig = HasConfigImpl.make,
+        redis = RedisImpl.make(redis),
+        _auth = AuthImpl.make
       )
     )
 

@@ -13,9 +13,7 @@ object DI {
     ControllerImpl
       .make(
         boundary = BoundaryImpl.make(
-          gate = Gate.make(
-            persistence = PersistenceImpl.make(postgres)
-          )
+          persistence = PersistenceImpl.make(postgres)
         )
       )
       .pure

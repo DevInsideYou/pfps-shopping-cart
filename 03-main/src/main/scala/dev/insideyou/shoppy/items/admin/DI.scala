@@ -16,12 +16,10 @@ object DI {
   ): F[Controller[F]] =
     ControllerImpl
       .make(
+        authMiddleware,
         boundary = BoundaryImpl.make(
-          gate = Gate.make(
-            persistence = PersistenceImpl.make(postgres)
-          )
-        ),
-        authMiddleware = authMiddleware
+          persistence = PersistenceImpl.make(postgres)
+        )
       )
       .pure
 }

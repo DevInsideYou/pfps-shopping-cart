@@ -9,15 +9,15 @@ import cats._
 import cats.syntax.all._
 
 object BoundaryImpl {
-  def make[F[_]: Monad: NonEmptyParallel, Auth, Token: Eq](
-      gate: Gate[F, Auth, Token]
-  ): Boundary[F, AdminUser, Auth, Token] =
-    new Boundary[F, AdminUser, Auth, Token] {
-      override lazy val authMiddleware: F[AuthMiddleware[F, AdminUser, Auth, Token]] =
+  def make[F[_]: Monad: NonEmptyParallel, Authy, Token: Eq](
+      dependencies: Dependencies[F, Authy, Token]
+  ): Boundary[F, AdminUser, Authy, Token] =
+    new Boundary[F, AdminUser, Authy, Token] {
+      override lazy val authMiddleware: F[AuthMiddleware[F, AdminUser, Authy, Token]] =
         for {
-          config                  <- gate.config
+          config                  <- dependencies.config
           (adminToken, adminAuth) <- tokenAndAuth(config)
-          claim                   <- gate.claim(adminToken, adminAuth)
+          claim                   <- dependencies.claim(adminToken, adminAuth)
         } yield AuthMiddleware(
           adminAuth,
           find = token =>
@@ -27,10 +27,33 @@ object BoundaryImpl {
               .pure
         )
 
-      private def tokenAndAuth(config: Config): F[(Token, Auth)] =
-        (gate.token(config.adminKey), gate.auth(config.tokenKey)).parTupled
+      private def tokenAndAuth(config: Config): F[(Token, Authy)] =
+        (dependencies.token(config.adminKey), dependencies.auth(config.tokenKey)).parTupled
 
       private def adminUser(content: ClaimContent): AdminUser =
         AdminUser(User(UserId(content.uuid), UserName("admin")))
     }
+
+  trait Dependencies[F[_], Authy, Token] extends HasConfig[F, Config] with Auth[F, Authy, Token]
+
+  def make[F[_]: Monad: NonEmptyParallel, Authy, Token: Eq](
+      hasConfig: HasConfig[F, Config],
+      _auth: Auth[F, Authy, Token]
+  ): Boundary[F, AdminUser, Authy, Token] =
+    make {
+      new Dependencies[F, Authy, Token] {
+        override def config: F[Config] =
+          hasConfig.config
+
+        override def token(adminKey: AdminUserTokenConfig): F[Token] =
+          _auth.token(adminKey)
+
+        override def auth(tokenKey: JwtSecretKeyConfig): F[Authy] =
+          _auth.auth(tokenKey)
+
+        override def claim(token: Token, auth: Authy): F[ClaimContent] =
+          _auth.claim(token, auth)
+      }
+    }
+
 }

@@ -15,7 +15,7 @@ object DI {
   def make[F[_]: log4cats.Logger: JsonDecoder: GenUUID: Background: Temporal](
       postgres: Resource[F, Session[F]],
       redis: RedisCommands[F, String, String],
-      httpClientResources: HttpClientResources[F],
+      clientResources: HttpClientResources[F],
       shoppingCartBoundary: shopping_cart.Boundary[F],
       authMiddleware: AuthMiddleware[F, CommonUser],
       retryPolicy: RetryPolicy[F]
@@ -25,17 +25,14 @@ object DI {
 
     ControllerImpl
       .make(
+        authMiddleware,
         boundary = BoundaryImpl.make(
-          gate = Gate.make(
-            hasLogger = HasLoggerImpl.make(logger),
-            paymentClient =
-              PaymentClientImpl.make(httpClientResources.config, httpClientResources.client),
-            persistence = PersistenceImpl.make(postgres, retryPolicy),
-            redis = RedisImpl.make(redis),
-            otherBoundaries = OtherBoundariesImpl.make(shoppingCartBoundary)
-          )
-        ),
-        authMiddleware
+          hasLogger = HasLoggerImpl.make(logger),
+          paymentClient = PaymentClientImpl.make(clientResources.config, clientResources.client),
+          persistence = PersistenceImpl.make(postgres, retryPolicy),
+          redis = RedisImpl.make(redis),
+          otherBoundaries = OtherBoundariesImpl.make(shoppingCartBoundary)
+        )
       )
       .pure
   }

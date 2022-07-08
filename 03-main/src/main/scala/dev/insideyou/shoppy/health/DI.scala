@@ -16,10 +16,8 @@ object DI {
     ControllerImpl
       .make(
         boundary = BoundaryImpl.make(
-          gate = Gate.make(
-            persistence = PersistenceImpl.make(postgres),
-            redis = RedisImpl.make(redis)
-          )
+          persistence = PersistenceImpl.make(postgres),
+          redis = RedisImpl.make(redis)
         )
       )
       .pure

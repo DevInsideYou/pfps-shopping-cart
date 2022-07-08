@@ -9,12 +9,26 @@ trait Boundary[F[_]] {
 }
 
 object BoundaryImpl {
-  def make[F[_]](gate: Gate[F]): Boundary[F] =
+  def make[F[_]](dependencies: Dependencies[F]): Boundary[F] =
     new Boundary[F] {
       override def create(item: CreateItem): F[ItemId] =
-        gate.createItem(item)
+        dependencies.createItem(item)
 
       override def update(item: UpdateItem): F[Unit] =
-        gate.updateItem(item)
+        dependencies.updateItem(item)
     }
+
+  trait Dependencies[F[_]] extends Persistence[F]
+
+  def make[F[_]](persistence: Persistence[F]): Boundary[F] =
+    make {
+      new Dependencies[F] {
+        override def createItem(item: CreateItem): F[ItemId] =
+          persistence.createItem(item)
+
+        override def updateItem(item: UpdateItem): F[Unit] =
+          persistence.updateItem(item)
+      }
+    }
+
 }

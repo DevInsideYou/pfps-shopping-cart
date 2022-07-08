@@ -13,19 +13,37 @@ import CirceCodecs._
 
 object ControllerImpl {
   def make[F[_]: MonadThrow](
-      boundary: Boundary[F],
-      authMiddleware: AuthMiddleware[F, CommonUser]
+      dependencies: Dependencies[F]
   ): Controller[F] =
     new Controller.Open[F] with Http4sDsl[F] {
       override lazy val routes: HttpRoutes[F] =
-        authMiddleware {
+        dependencies.authMiddleware {
           AuthedRoutes.of[CommonUser, F] {
             case GET -> Root as user =>
-              Ok(boundary.findBy(user.value.id))
+              Ok(dependencies.findBy(user.value.id))
 
             case GET -> Root / vars.OrderIdVar(orderId) as user =>
-              Ok(boundary.get(user.value.id, orderId))
+              Ok(dependencies.get(user.value.id, orderId))
           }
         }
+    }
+
+  trait Dependencies[F[_]] extends HasAuthMiddleware[F, CommonUser] with Boundary[F]
+
+  def make[F[_]: MonadThrow](
+      _authMiddleware: AuthMiddleware[F, CommonUser],
+      boundary: Boundary[F]
+  ): Controller[F] =
+    make {
+      new Dependencies[F] {
+        override def authMiddleware: AuthMiddleware[F, CommonUser] =
+          _authMiddleware
+
+        override def get(userId: UserId, orderId: OrderId): F[Option[ordering.Order]] =
+          boundary.get(userId, orderId)
+
+        override def findBy(userId: UserId): F[List[ordering.Order]] =
+          boundary.findBy(userId)
+      }
     }
 }

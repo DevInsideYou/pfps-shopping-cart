@@ -12,24 +12,23 @@ import org.http4s.server._
 
 object ControllerImpl {
   def make[F[_]: JsonDecoder: Monad](
-      boundary: Boundary[F],
-      authMiddleware: AuthMiddleware[F, CommonUser]
+      dependencies: Dependencies[F]
   ): Controller[F] =
     new Controller.Open[F] with Http4sDsl[F] {
       import CirceCodecs._
 
       override lazy val routes: HttpRoutes[F] =
-        authMiddleware {
+        dependencies.authMiddleware {
           AuthedRoutes.of[CommonUser, F] {
             case GET -> Root as user =>
-              Ok(boundary.get(user.value.id))
+              Ok(dependencies.get(user.value.id))
 
             case ar @ POST -> Root as user =>
               ar.req.asJsonDecode[Cart].flatMap {
                 _.items
                   .map {
                     case (id, quantity) =>
-                      boundary.add(user.value.id, id, quantity)
+                      dependencies.add(user.value.id, id, quantity)
                   }
                   .toList
                   .sequence *> Created()
@@ -37,12 +36,37 @@ object ControllerImpl {
 
             case ar @ PUT -> Root as user =>
               ar.req.asJsonDecode[Cart].flatMap { cart =>
-                boundary.update(user.value.id, cart) *> Ok()
+                dependencies.update(user.value.id, cart) *> Ok()
               }
 
             case DELETE -> Root / vars.ItemIdVar(itemId) as user =>
-              boundary.removeItem(user.value.id, itemId) *> NoContent()
+              dependencies.removeItem(user.value.id, itemId) *> NoContent()
           }
         }
     }
+
+  trait Dependencies[F[_]] extends HasAuthMiddleware[F, CommonUser] with Boundary[F]
+
+  def make[F[_]: JsonDecoder: Monad](
+      _authMiddleware: AuthMiddleware[F, CommonUser],
+      boundary: Boundary[F]
+  ): Controller[F] =
+    make(
+      new Dependencies[F] {
+        override def authMiddleware: AuthMiddleware[F, CommonUser] =
+          _authMiddleware
+
+        override def add(userId: UserId, itemId: items.ItemId, quantity: items.Quantity): F[Unit] =
+          boundary.add(userId, itemId, quantity)
+
+        override def get(userId: UserId): F[CartTotal] =
+          boundary.get(userId)
+
+        override def removeItem(userId: UserId, itemId: items.ItemId): F[Unit] =
+          boundary.removeItem(userId, itemId)
+
+        override def update(userId: UserId, cart: Cart): F[Unit] =
+          boundary.update(userId, cart)
+      }
+    )
 }

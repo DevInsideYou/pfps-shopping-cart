@@ -23,8 +23,7 @@ import org.http4s.server._
 
 object ControllerImpl {
   def make[F[_]: JsonDecoder: MonadThrow](
-      boundary: Boundary[F, jwt.JwtToken],
-      authMiddleware: AuthMiddleware[F, CommonUser]
+      dependencies: Dependencies[F]
   ): Controller[F] =
     new Controller.Open[F] with Http4sDsl[F] {
       protected implicit lazy val s: Semigroup[HttpRoutes[F]] =
@@ -43,17 +42,17 @@ object ControllerImpl {
         }
 
       private lazy val authedRoutes: HttpRoutes[F] =
-        authMiddleware {
+        dependencies.authMiddleware {
           AuthedRoutes.of[CommonUser, F] {
             case ar @ POST -> Root / "logout" as user =>
               AuthHeaders
                 .getBearerToken(ar.req)
-                .traverse_(t => boundary.logout(t, user.value.name)) *> NoContent()
+                .traverse_(t => dependencies.logout(t, user.value.name)) *> NoContent()
           }
         }
 
       private def users(createUser: CreateUser): F[Response[F]] =
-        boundary
+        dependencies
           .newUser(createUser.username.toDomain, createUser.password.toDomain)
           .flatMap(Created(_))
           .recoverWith {
@@ -61,12 +60,34 @@ object ControllerImpl {
           }
 
       private def login(loginUser: LoginUser): F[Response[F]] =
-        boundary
+        dependencies
           .login(loginUser.username.toDomain, loginUser.password.toDomain)
           .flatMap(Ok(_))
           .recoverWith {
             case UserNotFound(_) | InvalidPassword(_) => Forbidden()
           }
+    }
+
+  trait Dependencies[F[_]] extends HasAuthMiddleware[F, CommonUser] with Boundary[F, jwt.JwtToken]
+
+  def make[F[_]: JsonDecoder: MonadThrow](
+      _authMiddleware: AuthMiddleware[F, CommonUser],
+      boundary: Boundary[F, jwt.JwtToken]
+  ): Controller[F] =
+    make {
+      new Dependencies[F] {
+        override def authMiddleware: AuthMiddleware[F, CommonUser] =
+          _authMiddleware
+
+        override def newUser(userName: UserName, password: Password): F[jwt.JwtToken] =
+          boundary.newUser(userName, password)
+
+        override def login(userName: UserName, password: Password): F[jwt.JwtToken] =
+          boundary.login(userName, password)
+
+        override def logout(token: jwt.JwtToken, userName: UserName): F[Unit] =
+          boundary.logout(token, userName)
+      }
     }
 
   private implicit lazy val tokenEncoder: Encoder[jwt.JwtToken] =

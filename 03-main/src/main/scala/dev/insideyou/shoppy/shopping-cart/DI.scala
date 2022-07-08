@@ -19,14 +19,12 @@ object DI {
   ): F[(Controller[F], Boundary[F])] =
     BoundaryImpl
       .make(
-        gate = Gate.make(
-          hasConfig = HasConfigImpl.make,
-          persistence = PersistenceImpl.make(postgres),
-          redis = RedisImpl.make(redis)
-        )
+        hasConfig = HasConfigImpl.make,
+        persistence = PersistenceImpl.make(postgres),
+        redis = RedisImpl.make(redis)
       )
       .pipe { boundary =>
-        ControllerImpl.make(boundary, authMiddleware) -> boundary
+        ControllerImpl.make(authMiddleware, boundary) -> boundary
       }
       .pure
 }

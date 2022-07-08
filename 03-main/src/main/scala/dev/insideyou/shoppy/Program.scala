@@ -39,7 +39,7 @@ object Program {
       httpServerConfig <- HttpServerConfigLoader.load
       otherDependencies <- (
         RetryPolicyLoader.load,
-        users.auth.JwtExpire.make,
+        JwtExpire.make,
         users.auth.middleware.admin.DI.make.middleware,
         users.auth.middleware.DI.make(resources.redis).middleware
       ).parTupled

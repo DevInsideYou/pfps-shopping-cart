@@ -1,7 +1,4 @@
 package dev.insideyou
-package shoppy
-package users
-package auth
 
 import java.time.Clock
 

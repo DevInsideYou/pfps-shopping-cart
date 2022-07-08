@@ -18,23 +18,38 @@ import CirceCodecs._
 
 object ControllerImpl {
   def make[F[_]: JsonDecoder: MonadThrow](
-      boundary: Boundary[F],
-      authMiddleware: AuthMiddleware[F, AdminUser]
+      dependencies: Dependencies[F]
   ): Controller[F] =
     new Controller.Admin[F] with Http4sDsl[F] {
       override lazy val routes: HttpRoutes[F] =
         Router {
           "/categories" ->
-            authMiddleware {
+            dependencies.authMiddleware {
               AuthedRoutes.of[AdminUser, F] {
                 case ar @ POST -> Root as _ =>
                   ar.req.decodeR[CategoryParam] { bp =>
-                    boundary.create(bp.toDomain).flatMap { id =>
+                    dependencies.create(bp.toDomain).flatMap { id =>
                       Created(JsonObject.singleton("category_id", id.asJson))
                     }
                   }
               }
             }
         }
+    }
+
+  trait Dependencies[F[_]] extends HasAuthMiddleware[F, AdminUser] with Boundary[F]
+
+  def make[F[_]: JsonDecoder: MonadThrow](
+      _authMiddleware: AuthMiddleware[F, AdminUser],
+      boundary: Boundary[F]
+  ): Controller[F] =
+    make {
+      new Dependencies[F] {
+        override def authMiddleware: AuthMiddleware[F, AdminUser] =
+          _authMiddleware
+
+        override def create(name: CategoryName): F[CategoryId] =
+          boundary.create(name)
+      }
     }
 }

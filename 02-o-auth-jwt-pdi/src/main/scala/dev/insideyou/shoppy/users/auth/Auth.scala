@@ -11,9 +11,9 @@ import dev.profunktor._
 import eu.timepit.refined.auto._
 import io.circe.syntax._
 
-object TokensImpl {
-  def make[F[_]: GenUUID: Monad](jwtExpire: JwtExpire[F]): Tokens[F, auth.jwt.JwtToken] =
-    new Tokens[F, auth.jwt.JwtToken] {
+object AuthImpl {
+  def make[F[_]: GenUUID: Monad](jwtExpire: JwtExpire[F]): Auth[F, auth.jwt.JwtToken] =
+    new Auth[F, auth.jwt.JwtToken] {
       override def createToken(config: Config): F[auth.jwt.JwtToken] =
         for {
           uuid  <- GenUUID[F].make

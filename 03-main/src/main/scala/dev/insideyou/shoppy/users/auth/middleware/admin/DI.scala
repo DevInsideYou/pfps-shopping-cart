@@ -13,10 +13,8 @@ object DI {
   def make[F[_]: Async: NonEmptyParallel]: Middleware[F, AdminUser] =
     MiddlewareImpl.make(
       boundary = BoundaryImpl.make(
-        gate = Gate.make(
-          hasConfig = HasConfigImpl.make,
-          tokens = TokensImpl.make
-        )
+        hasConfig = HasConfigImpl.make,
+        _auth = AuthImpl.make
       )
     )
 
