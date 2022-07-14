@@ -17,9 +17,10 @@ val scalafixCommonSettings = inConfig(IntegrationTest)(scalafixConfigSettings(In
 lazy val root = (project in file("."))
   .settings(name := "shopping-cart")
   .aggregate(
+    `core-headers`,
     core,
     // c
-    `json-circe-util`,
+    `json-circe`,
     `retries-cats-retry`,
     // i
     `delivery-http-http4s`,
@@ -33,6 +34,7 @@ lazy val root = (project in file("."))
     `persistence-db-postgres-skunk`,
     // old stuff
     `big-ball-of-mud`,
+    `small-ball-of-mud`,
     tests
   )
 
@@ -59,9 +61,35 @@ lazy val tests = (project in file("modules/tests"))
   )
   .dependsOn(`big-ball-of-mud`)
 
+lazy val `core-headers` =
+  project
+    .in(file("01-core-headers"))
+    .settings(
+      scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      libraryDependencies ++= Seq(
+        CompilerPlugin.kindProjector,
+        CompilerPlugin.betterMonadicFor,
+        CompilerPlugin.semanticDB,
+        Libraries.cats,
+        Libraries.derevoCats,
+        Libraries.derevoCore,
+        Libraries.monocleCore,
+        Libraries.newtype,
+        Libraries.refinedCats,
+        Libraries.refinedCore,
+        Libraries.squants
+      )
+    )
+
 lazy val core =
   project
-    .in(file("01-core"))
+    .in(file("02-o-core"))
+    .dependsOn(
+      Seq(
+        `core-headers`
+      ).map(_ % Cctt): _*
+    )
     .settings(
       scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
       resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -85,7 +113,7 @@ lazy val `retries-cats-retry` =
     .in(file("02-c-retries-cats-retry"))
     .dependsOn(
       Seq(
-        core
+        `core-headers`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -100,12 +128,12 @@ lazy val `retries-cats-retry` =
       )
     )
 
-lazy val `json-circe-util` =
+lazy val `json-circe` =
   project
-    .in(file("02-c-json-circe-util"))
+    .in(file("02-c-json-circe"))
     .dependsOn(
       Seq(
-        core
+        `core-headers`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -128,7 +156,7 @@ lazy val `delivery-http-http4s` =
     .in(file("02-i-delivery-http-http4s"))
     .dependsOn(
       Seq(
-        `json-circe-util`
+        `json-circe`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -151,7 +179,7 @@ lazy val `auth-jwt-pdi` =
     .in(file("02-o-auth-jwt-pdi"))
     .dependsOn(
       Seq(
-        `json-circe-util`
+        `json-circe`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -171,7 +199,7 @@ lazy val `cache-redis-redis4cats` =
     .in(file("02-o-cache-redis-redis4cats"))
     .dependsOn(
       Seq(
-        `json-circe-util`
+        `json-circe`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -192,7 +220,7 @@ lazy val `client-http-http4s` =
     .in(file("02-o-client-http-http4s"))
     .dependsOn(
       Seq(
-        `json-circe-util`
+        `json-circe`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -214,7 +242,7 @@ lazy val `config-env-ciris` =
     .in(file("02-o-config-env-ciris"))
     .dependsOn(
       Seq(
-        core
+        `core-headers`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -236,7 +264,7 @@ lazy val `core-adapters` =
     .in(file("02-o-core-adapters"))
     .dependsOn(
       Seq(
-        core
+        `core-headers`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -254,7 +282,7 @@ lazy val `cryptography-jsr105-api` =
     .in(file("02-o-cryptography-jsr105-api"))
     .dependsOn(
       Seq(
-        core
+        `core-headers`
       ).map(_ % Cctt): _*
     )
     .settings(
@@ -274,7 +302,7 @@ lazy val `persistence-db-postgres-skunk` =
     .in(file("02-o-persistence-db-postgres-skunk"))
     .dependsOn(
       Seq(
-        `json-circe-util`,
+        `json-circe`,
         `retries-cats-retry`
       ).map(_ % Cctt): _*
     )
@@ -305,6 +333,7 @@ lazy val main =
         `client-http-http4s`,
         `config-env-ciris`,
         `core-adapters`,
+        core,
         `cryptography-jsr105-api`,
         `persistence-db-postgres-skunk`
       ).map(_ % Cctt): _*
@@ -320,6 +349,48 @@ lazy val main =
         Libraries.logback % Runtime
       )
     )
+
+lazy val `small-ball-of-mud` = (project in file("small-ball-of-mud"))
+  .settings(
+    scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
+    resolvers += Resolver.sonatypeRepo("snapshots"),
+    libraryDependencies ++= Seq(
+      CompilerPlugin.kindProjector,
+      CompilerPlugin.betterMonadicFor,
+      CompilerPlugin.semanticDB,
+      Libraries.cats,
+      Libraries.catsEffect,
+      Libraries.catsRetry,
+      Libraries.circeCore,
+      Libraries.circeGeneric,
+      Libraries.circeParser,
+      Libraries.circeRefined,
+      Libraries.cirisCore,
+      Libraries.cirisEnum,
+      Libraries.cirisRefined,
+      Libraries.derevoCore,
+      Libraries.derevoCats,
+      Libraries.derevoCirce,
+      Libraries.fs2,
+      Libraries.http4sDsl,
+      Libraries.http4sServer,
+      Libraries.http4sClient,
+      Libraries.http4sCirce,
+      Libraries.http4sJwtAuth,
+      Libraries.javaxCrypto,
+      Libraries.log4cats,
+      Libraries.logback % Runtime,
+      Libraries.monocleCore,
+      Libraries.newtype,
+      Libraries.redis4catsEffects,
+      Libraries.redis4catsLog4cats,
+      Libraries.refinedCore,
+      Libraries.refinedCats,
+      Libraries.skunkCore,
+      Libraries.skunkCirce,
+      Libraries.squants
+    )
+  )
 
 lazy val `big-ball-of-mud` = (project in file("modules/core"))
   .enablePlugins(DockerPlugin)
